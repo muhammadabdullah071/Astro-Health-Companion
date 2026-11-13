@@ -1,0 +1,8 @@
+{
+  "backend": "ok",
+  "offline_mode": true,
+  "llm": "ready",
+  "documents_indexed": 12,
+  "last_data_update": "2026-11-14T08:00:00Z",
+  "data_label": "SIMULATED"
+}

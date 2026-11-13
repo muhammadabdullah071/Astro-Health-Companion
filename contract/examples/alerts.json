@@ -1,0 +1,24 @@
+{
+  "alerts": [
+    {
+      "id": "a1",
+      "rule": "Resting heart rate above personal baseline",
+      "severity": "watch",
+      "metric": "heart_rate_bpm",
+      "value": 78,
+      "baseline": 62,
+      "timestamp": "2026-11-14T08:00:00Z",
+      "message": "Heart rate is 16 bpm above your 7-day baseline."
+    },
+    {
+      "id": "a2",
+      "rule": "Sleep under 6 hours for 3 nights in a row",
+      "severity": "notice",
+      "metric": "sleep_hours",
+      "value": 5.8,
+      "baseline": 6.3,
+      "timestamp": "2026-11-14T08:00:00Z",
+      "message": "Sleep has been under 6 hours for 3 nights in a row."
+    }
+  ]
+}

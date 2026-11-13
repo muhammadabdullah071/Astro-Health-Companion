@@ -1,0 +1,41 @@
+# Backend only:           docker compose up --build
+# Backend and frontend:   docker compose --profile full up --build
+#
+# Each service owns its Dockerfile and .dockerignore:
+#   backend/Dockerfile   backend/.dockerignore
+#   frontend/Dockerfile  frontend/.dockerignore
+#
+# Ollama is NOT containerised: it runs on the host, and the backend reaches it
+# through host.docker.internal.
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      OLLAMA_URL: http://host.docker.internal:11434
+      OFFLINE_MODE: "true"
+      ASK_TIMEOUT_SECONDS: "20"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # Repo folders the backend needs, mounted where config.py expects them (/app/<folder>)
+      - ./contract:/app/contract:ro            # example JSON (seed fallback)
+      - ./data/sample:/app/data/sample:ro      # sample readings CSV
+      - ./data/runtime:/app/data/runtime       # SQLite file lives here
+      - ./rag:/app/rag                         # Cesar's rag/ask.py and index metadata
+    restart: unless-stopped
+
+  frontend:
+    profiles: ["full"]
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+        NEXT_PUBLIC_USE_MOCK: "false"
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy

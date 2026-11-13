@@ -1,0 +1,13 @@
+{
+  "answer": "[PLACEHOLDER ANSWER] Heart rate is 16 bpm above your 7-day baseline [1][2].",
+  "mode": "llm",
+  "citations": [
+    {
+      "title": "PLACEHOLDER source 1 (replace with a paper from Ammara's list)",
+      "source": "NASA",
+      "url": "https://example.org/placeholder-1",
+      "excerpt": "Placeholder excerpt used only for UI and integration development."
+    }
+  ],
+  "disclaimer": "Decision support only - not a medical diagnosis."
+}

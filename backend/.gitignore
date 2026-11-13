@@ -1,0 +1,24 @@
+# BACKEND .gitignore (Python / FastAPI). Paths are relative to backend/.
+
+# Bytecode and virtual environment
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Test and tooling caches
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Packaging
+*.egg-info/
+build/
+dist/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
