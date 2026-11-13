@@ -1,0 +1,13 @@
+{
+  "answer": "The language model is unavailable, so here are the most relevant excerpts from the local library.",
+  "mode": "retrieval_only",
+  "citations": [
+    {
+      "title": "PLACEHOLDER source 1 (replace with a paper from Ammara's list)",
+      "source": "NASA",
+      "url": "https://example.org/placeholder-1",
+      "excerpt": "Placeholder excerpt used only for UI and integration development."
+    }
+  ],
+  "disclaimer": "Decision support only - not a medical diagnosis."
+}

@@ -1,0 +1,18 @@
+# Build context is ./backend, so paths are relative to this folder.
+.venv
+venv
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+tests
+*.db
+*.sqlite
+*.sqlite3
+.env
+Dockerfile
+.dockerignore
+.gitignore
