@@ -2,23 +2,49 @@
   "alerts": [
     {
       "id": "a1",
+      "rule_id": "HR-01",
       "rule": "Resting heart rate above personal baseline",
       "severity": "watch",
+      "category": "physiological",
       "metric": "heart_rate_bpm",
       "value": 78,
-      "baseline": 62,
-      "timestamp": "2026-11-14T08:00:00Z",
-      "message": "Heart rate is 16 bpm above your 7-day baseline."
+      "unit": "bpm",
+      "baseline": 61.9,
+      "delta": 16.1,
+      "baseline_status": "established",
+      "timestamp": "2026-11-08T08:00:00Z",
+      "message": "Resting heart rate is 78 bpm, 16 bpm above this astronaut's 7-day baseline of 62 bpm.",
+      "next_step": "Repeat at rest under the same conditions; review recent sleep, exercise and symptoms; follow the mission-approved protocol if it persists or symptoms appear",
+      "source": "Prototype rule (context: S2, S4)",
+      "data_quality": "good",
+      "data_label": "SIMULATED",
+      "temp_type": null,
+      "sensor_location": null,
+      "device": null,
+      "measurement_method": null
     },
     {
       "id": "a2",
-      "rule": "Sleep under 6 hours for 3 nights in a row",
+      "rule_id": "SLEEP-01",
+      "rule": "Sleep under 6 hours for 3 nights",
       "severity": "notice",
+      "category": "physiological",
       "metric": "sleep_hours",
       "value": 5.8,
-      "baseline": 6.3,
+      "unit": "hours",
+      "baseline": 6.8,
+      "delta": -1,
+      "baseline_status": "established",
       "timestamp": "2026-11-14T08:00:00Z",
-      "message": "Sleep has been under 6 hours for 3 nights in a row."
+      "message": "Sleep has been under 6 hours for 3 nights in a row (latest night 5.8 hours).",
+      "next_step": "Review schedule, workload, environment and fatigue; consider approved sleep countermeasures",
+      "source": "Team guide rule (context: S7)",
+      "data_quality": "good",
+      "data_label": "SIMULATED",
+      "temp_type": null,
+      "sensor_location": null,
+      "device": null,
+      "measurement_method": null
     }
   ]
 }

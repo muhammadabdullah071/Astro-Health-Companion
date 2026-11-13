@@ -67,4 +67,5 @@ def test_alert_dict_is_passed_to_ask(client, monkeypatch):
 
     monkeypatch.setattr(rag_adapter, "get_ask", lambda: spy)
     client.post("/api/assistant/ask", json=ASK)
-    assert seen["id"] == "a1" and seen["rule_id"] == "hr_above_baseline" and seen["next_step"]
+    assert seen["id"] == "a1" and seen["rule_id"] == "HR-01" and seen["next_step"]
+    assert seen["category"] == "physiological" and seen["source"].startswith("Prototype rule")
