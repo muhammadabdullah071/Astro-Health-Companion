@@ -39,9 +39,9 @@ def ask(question, alert=None):
         return retrieval_only(question, None)
     step = alert.get("next_step") or "Re-measure and follow mission medical procedure."
     return {
-        "answer": (f"[PLACEHOLDER ANSWER] {alert['message']} The rule that fired was "
-                   f"'{alert['rule']}'. Possible contributing factors will come from the scientific library [1][2]. "
-                   f"Suggested next step: {step}"),
+        "answer": (f"[PLACEHOLDER ANSWER] {alert['message']} Rule {alert['rule_id']} "
+                   f"({alert['rule']}) fired. Possible contributing factors will come from the scientific "
+                   f"library [1][2]. Suggested next step: {step} This is a monitoring alert, not a diagnosis."),
         "mode": "llm",
         "citations": PLACEHOLDER_CITATIONS,
     }

@@ -1,30 +1,57 @@
-"""Personal baseline and trend helpers. Pure functions: no database, easy to test."""
+"""Personal baseline helpers. Pure functions: no database, easy to test.
+
+Baseline policy (Ammara, Section 2): the mean of 7 valid readings, excluding readings that
+triggered an alert, so an active alert is never silently normalised. Fewer than 7 usable
+readings means "baseline not established" (the function returns None).
+"""
 from __future__ import annotations
 
-from app.engine.rules_config import BASELINE_MIN_DAYS, BASELINE_WINDOW_DAYS
+from app.engine import quality
+from app.engine import rules_config as rc
+from app.utils import parse_ts
 
 
-def rolling_baseline(series, idx, metric, window=BASELINE_WINDOW_DAYS, min_days=BASELINE_MIN_DAYS):
-    """Mean of the `window` days BEFORE position idx (the current day is excluded).
+def time_window(ts):
+    """overnight, morning, afternoon or evening, from the UTC hour of the timestamp."""
+    hour = parse_ts(ts).hour
+    for name, (low, high) in rc.TIME_WINDOWS.items():
+        if low <= hour < high:
+            return name
+    return "overnight"
 
-    Uses the days available when fewer than `window` exist; returns None when fewer
-    than `min_days` values exist, so rules skip instead of guessing.
+
+def gap_hours(earlier_row, later_row):
+    return (parse_ts(later_row["timestamp"]) - parse_ts(earlier_row["timestamp"])).total_seconds() / 3600
+
+
+def comparable(series, j, i, metric):
+    """Skin temperature is only comparable in the same time window and from the same sensor location."""
+    if metric != "body_temp_c":
+        return True
+    a, b = series[j], series[i]
+    return (
+        time_window(a["timestamp"]) == time_window(b["timestamp"])
+        and quality.get(a, "temp_sensor_location") == quality.get(b, "temp_sensor_location")
+    )
+
+
+def rolling_baseline(series, values, flagged, i, metric):
+    """Baseline for row i, or None when it is not established.
+
+    values:  per row, the valid reading or None
+    flagged: per row, True when that reading already triggered a day-level alert
+    ASSUMPTION (to confirm with Ammara): take the last 7 valid, non-flagged, comparable readings
+    found within the previous BASELINE_LOOKBACK_ROWS rows.
     """
-    prev = [r[metric] for r in series[max(0, idx - window):idx] if r.get(metric) is not None]
-    if len(prev) < min_days:
+    start = max(0, i - rc.BASELINE_LOOKBACK_ROWS)
+    candidates = [
+        j for j in range(start, i)
+        if values[j] is not None and not flagged[j] and comparable(series, j, i, metric)
+    ]
+    candidates = candidates[-rc.BASELINE_DAYS:]
+    if len(candidates) < rc.BASELINE_MIN_DAYS:
         return None
-    return sum(prev) / len(prev)
-
-
-def consecutive_below(series, idx, metric, threshold, nights):
-    """True when the last `nights` values up to idx are all strictly below threshold."""
-    if idx + 1 < nights:
-        return False
-    for j in range(idx - nights + 1, idx + 1):
-        v = series[j].get(metric)
-        if v is None or not v < threshold:
-            return False
-    return True
+    return sum(values[j] for j in candidates) / len(candidates)
 
 
 def trend_slope(values):
