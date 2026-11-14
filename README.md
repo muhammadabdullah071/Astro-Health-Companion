@@ -135,3 +135,5 @@ proven prediction of any condition. Read [docs/limitations.md](docs/limitations.
 
 Abdullah (team lead, frontend), Elthiero (backend, integration), Cesar (local model and RAG), Ammara (medical
 research, rules, UX), Sofia (data), Shubhi (testing and QA).
+
+*Built for the NASA International Space Apps Challenge 2026.*
