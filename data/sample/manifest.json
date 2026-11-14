@@ -1,0 +1,27 @@
+{
+  "data_label": "SIMULATED",
+  "generator_seed": 20261113,
+  "first_date": "2026-10-16",
+  "last_date": "2026-11-14",
+  "sleep_timestamp_meaning": "Sleep ending at 08:00 UTC on day N is assigned to day N",
+  "body_temp_c_meaning": "SIMULATED wearable skin temperature at the left wrist, NOT core temperature",
+  "temperature_semantics": "body_temp_c is the frozen import column; skin temperature is the primary monitored metric; core measurements are not generated",
+  "provenance": "SIMULATED engineering values based on internal team design; NOT NASA astronaut measurements",
+  "profiles": [
+    {
+      "profile_id": "ASTRO-01",
+      "csv": "readings.csv",
+      "json": "readings.json",
+      "records": 30
+    },
+    {
+      "profile_id": "ASTRO-02",
+      "csv": "readings_profile_02.csv",
+      "json": "readings_profile_02.json",
+      "records": 30
+    }
+  ],
+  "traceability_file": "traceability.csv",
+  "expected_alerts_file": "expected_alerts.json",
+  "simulation_model": "Illustrative wrist skin-temperature baselines; not clinical reference ranges or sensor-calibrated values"
+}

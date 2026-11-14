@@ -34,7 +34,7 @@ CREATE INDEX idx_readings_astro_ts ON readings (astronaut_id, ts);
 
 -- One row per alert on every day (history), so charts can show markers.
 CREATE TABLE alerts (
-  id                 TEXT PRIMARY KEY,         -- a1, a2, ... most severe first, then newest first
+  id                 TEXT NOT NULL,            -- a1, a2, ... most severe first, then newest first
   astronaut_id       TEXT NOT NULL,
   position           INTEGER NOT NULL,
   rule_id            TEXT NOT NULL,            -- HR-01 ... DATA-02
@@ -55,6 +55,7 @@ CREATE TABLE alerts (
   temp_type          TEXT,                     -- skin (TEMP-01 only)
   sensor_location    TEXT,
   device             TEXT,
-  measurement_method TEXT
+  measurement_method TEXT,
+  PRIMARY KEY (astronaut_id, id)
 );
 CREATE INDEX idx_alerts_astro_ts ON alerts (astronaut_id, ts);

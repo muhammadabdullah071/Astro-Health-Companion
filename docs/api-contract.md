@@ -15,6 +15,9 @@ documents_indexed, last_data_update (newest reading, UTC), data_label.
 ## GET /api/profile
 `contract/examples/profile.json` (proposal: the guide does not define this shape)
 Fields: id, name, mission, mission_day, baseline_window_days, data_label.
+`id` is the fictional astronaut served (ASTRO-01 by default; set `ASTRO_ID=ASTRO-02` for the second profile).
+`mission_day` counts from the first reading (day 1 = 2026-10-16), so it matches Sofia's `mission_day` and
+Ammara's day numbers: the HR-01 demo alert is on mission day 20 and the newest reading is day 30.
 
 ## GET /api/readings?days=14
 `contract/examples/readings.json`

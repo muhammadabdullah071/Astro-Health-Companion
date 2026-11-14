@@ -1,0 +1,215 @@
+{
+  "data_label": "SIMULATED",
+  "readings": [
+    {
+      "timestamp": "2026-10-16T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 97,
+      "sleep_hours": 7.2,
+      "body_temp_c": 33.6
+    },
+    {
+      "timestamp": "2026-10-17T08:00:00Z",
+      "heart_rate_bpm": 67,
+      "spo2_pct": 99,
+      "sleep_hours": 7.0,
+      "body_temp_c": 33.4
+    },
+    {
+      "timestamp": "2026-10-18T08:00:00Z",
+      "heart_rate_bpm": 64,
+      "spo2_pct": 98,
+      "sleep_hours": 7.4,
+      "body_temp_c": 33.3
+    },
+    {
+      "timestamp": "2026-10-19T08:00:00Z",
+      "heart_rate_bpm": 66,
+      "spo2_pct": 97,
+      "sleep_hours": 6.9,
+      "body_temp_c": 33.3
+    },
+    {
+      "timestamp": "2026-10-20T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 98,
+      "sleep_hours": 7.0,
+      "body_temp_c": 33.2
+    },
+    {
+      "timestamp": "2026-10-21T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 98,
+      "sleep_hours": 7.0,
+      "body_temp_c": 33.5
+    },
+    {
+      "timestamp": "2026-10-22T08:00:00Z",
+      "heart_rate_bpm": 67,
+      "spo2_pct": 98,
+      "sleep_hours": 7.1,
+      "body_temp_c": 33.3
+    },
+    {
+      "timestamp": "2026-10-23T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 98,
+      "sleep_hours": 7.1,
+      "body_temp_c": 33.6
+    },
+    {
+      "timestamp": "2026-10-24T08:00:00Z",
+      "heart_rate_bpm": 64,
+      "spo2_pct": 99,
+      "sleep_hours": 6.9,
+      "body_temp_c": 33.5
+    },
+    {
+      "timestamp": "2026-10-25T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 97,
+      "sleep_hours": 7.1,
+      "body_temp_c": 33.5
+    },
+    {
+      "timestamp": "2026-10-26T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 98,
+      "sleep_hours": 7.3,
+      "body_temp_c": 33.4
+    },
+    {
+      "timestamp": "2026-10-27T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 98,
+      "sleep_hours": 6.9,
+      "body_temp_c": 33.6
+    },
+    {
+      "timestamp": "2026-10-28T08:00:00Z",
+      "heart_rate_bpm": 64,
+      "spo2_pct": 97,
+      "sleep_hours": 6.9,
+      "body_temp_c": 33.4
+    },
+    {
+      "timestamp": "2026-10-29T08:00:00Z",
+      "heart_rate_bpm": 66,
+      "spo2_pct": 97,
+      "sleep_hours": 7.2,
+      "body_temp_c": 33.6
+    },
+    {
+      "timestamp": "2026-10-30T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 98,
+      "sleep_hours": 7.4,
+      "body_temp_c": 33.5
+    },
+    {
+      "timestamp": "2026-10-31T08:00:00Z",
+      "heart_rate_bpm": 67,
+      "spo2_pct": 97,
+      "sleep_hours": 7.0,
+      "body_temp_c": 33.2
+    },
+    {
+      "timestamp": "2026-11-01T08:00:00Z",
+      "heart_rate_bpm": 63,
+      "spo2_pct": 98,
+      "sleep_hours": 7.3,
+      "body_temp_c": 33.4
+    },
+    {
+      "timestamp": "2026-11-02T08:00:00Z",
+      "heart_rate_bpm": 67,
+      "spo2_pct": 99,
+      "sleep_hours": 7.1,
+      "body_temp_c": 33.6
+    },
+    {
+      "timestamp": "2026-11-03T08:00:00Z",
+      "heart_rate_bpm": 63,
+      "spo2_pct": 97,
+      "sleep_hours": 7.1,
+      "body_temp_c": 33.3
+    },
+    {
+      "timestamp": "2026-11-04T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 98,
+      "sleep_hours": 7.5,
+      "body_temp_c": 33.6
+    },
+    {
+      "timestamp": "2026-11-05T08:00:00Z",
+      "heart_rate_bpm": 64,
+      "spo2_pct": 99,
+      "sleep_hours": 7.4,
+      "body_temp_c": 33.6
+    },
+    {
+      "timestamp": "2026-11-06T08:00:00Z",
+      "heart_rate_bpm": 64,
+      "spo2_pct": 98,
+      "sleep_hours": 7.0,
+      "body_temp_c": 33.6
+    },
+    {
+      "timestamp": "2026-11-07T08:00:00Z",
+      "heart_rate_bpm": 67,
+      "spo2_pct": 99,
+      "sleep_hours": 7.3,
+      "body_temp_c": 33.3
+    },
+    {
+      "timestamp": "2026-11-08T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 99,
+      "sleep_hours": 7.1,
+      "body_temp_c": 33.2
+    },
+    {
+      "timestamp": "2026-11-09T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 98,
+      "sleep_hours": 7.1,
+      "body_temp_c": 33.5
+    },
+    {
+      "timestamp": "2026-11-10T08:00:00Z",
+      "heart_rate_bpm": 67,
+      "spo2_pct": 98,
+      "sleep_hours": 7.3,
+      "body_temp_c": 33.5
+    },
+    {
+      "timestamp": "2026-11-11T08:00:00Z",
+      "heart_rate_bpm": 63,
+      "spo2_pct": 99,
+      "sleep_hours": 7.2,
+      "body_temp_c": 33.5
+    },
+    {
+      "timestamp": "2026-11-12T08:00:00Z",
+      "heart_rate_bpm": 63,
+      "spo2_pct": 97,
+      "sleep_hours": 7.2,
+      "body_temp_c": 33.4
+    },
+    {
+      "timestamp": "2026-11-13T08:00:00Z",
+      "heart_rate_bpm": 64,
+      "spo2_pct": 98,
+      "sleep_hours": 7.0,
+      "body_temp_c": 33.3
+    },
+    {
+      "timestamp": "2026-11-14T08:00:00Z",
+      "heart_rate_bpm": 65,
+      "spo2_pct": 98,
+      "sleep_hours": 7.5,
+      "body_temp_c": 33.4
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
-  "id": "astro-demo-1",
-  "name": "Demo Astronaut A",
+  "id": "ASTRO-01",
+  "name": "Simulated astronaut ASTRO-01",
   "mission": "Simulated long-duration mission",
-  "mission_day": 143,
+  "mission_day": 30,
   "baseline_window_days": 7,
   "data_label": "SIMULATED"
 }
