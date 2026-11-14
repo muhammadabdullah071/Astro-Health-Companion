@@ -29,13 +29,17 @@ export default function Assistant() {
   const ask = useCallback(async (text: string) => {
     if (!text.trim()) return
     const tid = uid++, reading = { hr: D[29].hr, sleep: D[29].sleep }
+    const historyPayload = msgs
+      .filter((m) => !m.typing && m.text && m.id > 0)
+      .slice(-6)
+      .map((m) => ({ role: m.role === 'u' ? 'user' : 'assistant', content: m.text }))
     setMsgs((m) => [...m, { id: uid++, role: 'u', text }, { id: tid, role: 'a', typing: true }])
     let apiData: (Answer & { mode?: string; sources?: SourceItem[]; suggestions?: string[] }) | null = null
     try {
       const r = await fetch('/api/assistant/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: text, reading }),
+        body: JSON.stringify({ question: text, reading, history: historyPayload }),
       })
       if (r.ok) apiData = await r.json()
     } catch {}

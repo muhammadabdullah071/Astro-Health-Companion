@@ -61,13 +61,17 @@ async function askViaFastApi(question: string, alertId?: string): Promise<RagRes
   return null
 }
 
-async function askViaLocalPython(question: string): Promise<RagResponse | null> {
+async function askViaLocalPython(question: string, history?: unknown[]): Promise<RagResponse | null> {
   const repoRoot = path.resolve(process.cwd(), '..')
   const venvPyWin = path.join(repoRoot, 'backend', '.venv', 'Scripts', 'python.exe')
   const venvPyUnix = path.join(repoRoot, 'backend', '.venv', 'bin', 'python')
+  const cliArgs = ['-m', 'rag.ask', '--question', question]
+  if (Array.isArray(history) && history.length > 0) {
+    cliArgs.push('--history', JSON.stringify(history.slice(-6)))
+  }
   for (const py of [venvPyWin, venvPyUnix, 'python', 'python3']) {
     try {
-      const { stdout } = await execFileAsync(py, ['-m', 'rag.ask', '--question', question], {
+      const { stdout } = await execFileAsync(py, cliArgs, {
         cwd: repoRoot,
         timeout: 45000,
         env: { ...process.env, ASK_TIMEOUT_SECONDS: '45' },
@@ -85,7 +89,8 @@ export async function POST(req: Request) {
 
   const question = b.question.trim()
   const suggestions = buildFollowUpSuggestions(question)
-  const ragRes = (await askViaFastApi(question, b.alert_id)) ?? (await askViaLocalPython(question))
+  const ragRes =
+    (await askViaFastApi(question, b.alert_id)) ?? (await askViaLocalPython(question, b.history))
 
   if (ragRes && typeof ragRes.answer === 'string') {
     const citations = Array.isArray(ragRes.citations) ? ragRes.citations : []

@@ -411,6 +411,13 @@ _STOPWORDS = {
 }
 
 _GGUF_CACHE: dict[str, Any] = {}
+_CONVERSATION_MEMORY: list[dict[str, str]] = []
+
+_FOLLOWUP_CUES = {
+    "it", "that", "this", "those", "them", "they", "next", "more", "else",
+    "persist", "persists", "persisted", "continue", "continues", "again",
+    "also", "about", "step", "steps", "action", "actions", "do",
+}
 
 
 def _meta_path() -> Path:
@@ -918,10 +925,28 @@ def _to_citation(doc: dict[str, Any]) -> dict[str, str]:
     }
 
 
-def _retrieve(question: str, alert: dict | None, top_k: int = 2) -> list[dict[str, str]]:
+def _retrieve(
+    question: str,
+    alert: dict | None,
+    top_k: int = 2,
+    history: list[dict[str, str]] | None = None,
+) -> list[dict[str, str]]:
     corpus = _load_corpus()
     by_id = {d.get("id"): d for d in corpus if d.get("id")}
     q_tokens = _tokenize(question or "")
+    all_domain_keywords = {k.lower() for doc in corpus for k in doc.get("keywords", [])}
+
+    # If the user asks a follow-up question (e.g., "What should I do next?" or "What if it persists?")
+    # without repeating the topic word, inherit domain keywords from recent conversation history.
+    raw_words = set(re.findall(r"[a-z0-9_-]+", (question or "").lower()))
+    active_history = history if history is not None else _CONVERSATION_MEMORY
+    if alert is None and not (q_tokens & all_domain_keywords) and (raw_words & _FOLLOWUP_CUES) and active_history:
+        for turn in reversed(active_history[-4:]):
+            prev_tokens = _tokenize(str(turn.get("content") or turn.get("text") or ""))
+            inherited = prev_tokens & all_domain_keywords
+            if inherited:
+                q_tokens = q_tokens | inherited
+                break
 
     # 1. If an alert is supplied and maps to specific Ammara sources (S1-S9), prioritize those exact sources
     if alert is not None:
@@ -959,7 +984,6 @@ def _retrieve(question: str, alert: dict | None, top_k: int = 2) -> list[dict[st
     # When no alert is given, require at least one domain keyword match so unsupported questions
     # (e.g., "What is the weather on Mars?") honestly return no citations.
     if alert is None:
-        all_domain_keywords = {k.lower() for doc in corpus for k in doc.get("keywords", [])}
         if not (q_tokens & all_domain_keywords):
             return []
 
@@ -1007,7 +1031,12 @@ def _format_retrieval_answer(question: str, alert: dict | None, citations: list[
 # Multi-Backend LLM Generation (Ollama, Standalone GGUF, OpenAI-Compatible)
 # ---------------------------------------------------------------------------
 
-def _build_llm_prompt(question: str, alert: dict | None, citations: list[dict[str, str]]) -> str:
+def _build_llm_prompt(
+    question: str,
+    alert: dict | None,
+    citations: list[dict[str, str]],
+    history: list[dict[str, str]] | None = None,
+) -> str:
     context_blocks = "\n".join(
         f"[{i}] {c['title']} — {c['source']} ({c['url']}): {c['excerpt']}"
         for i, c in enumerate(citations, start=1)
@@ -1028,10 +1057,23 @@ def _build_llm_prompt(question: str, alert: dict | None, citations: list[dict[st
     else:
         alert_block = f"Recommended Operational Suggestions: {suggested_step}\n\n"
 
+    active_history = history if history is not None else _CONVERSATION_MEMORY
+    history_block = ""
+    if active_history:
+        formatted_turns = []
+        for turn in active_history[-4:]:
+            role_raw = str(turn.get("role") or "user").lower()
+            role_label = "Astronaut" if role_raw in ("u", "user", "human") else "Assistant"
+            content_str = str(turn.get("content") or turn.get("text") or "").strip()
+            if content_str:
+                formatted_turns.append(f"{role_label}: {content_str[:260]}")
+        if formatted_turns:
+            history_block = "Previous Conversation Turns:\n" + "\n".join(formatted_turns) + "\n\n"
+
     return (
         "You are an offline astronaut health decision-support assistant. "
         "Keep your answer concise (3 to 5 sentences maximum) and follow these strict rules:\n"
-        "1. Use ONLY the provided scientific sources and alert details.\n"
+        "1. Use ONLY the provided scientific sources, alert details, and previous conversation context.\n"
         "2. Cite sources inline as [1], [2].\n"
         "3. State the plain-language explanation (and Rule ID if given) and ALWAYS include concrete "
         "actionable suggestions ('Suggested next step: ...') from the provided protocol.\n"
@@ -1040,6 +1082,7 @@ def _build_llm_prompt(question: str, alert: dict | None, citations: list[dict[st
         "5. If the alert is DATA-01 or DATA-02, state clearly that it is a data-quality or baseline-setup notice "
         "and infer no health event.\n"
         "6. End with: 'This is a monitoring alert, not a diagnosis.'\n\n"
+        f"{history_block}"
         f"{alert_block}"
         f"Sources:\n{context_blocks}\n\n"
         f"Question: {question}\n"
@@ -1267,7 +1310,12 @@ def _enforce_clinical_guardrails(
     return cleaned
 
 
-def _generate_with_selected_llm(question: str, alert: dict | None, citations: list[dict[str, str]]) -> str | None:
+def _generate_with_selected_llm(
+    question: str,
+    alert: dict | None,
+    citations: list[dict[str, str]],
+    history: list[dict[str, str]] | None = None,
+) -> str | None:
     """Evaluates PC capabilities and active LLM config, then routes to the chosen local model backend."""
     # Respect test fixtures that explicitly disable local LLM by pointing OLLAMA_URL to port 1
     if os.environ.get("OLLAMA_URL", "").rstrip("/") in ("http://127.0.0.1:1", "http://localhost:1"):
@@ -1287,7 +1335,7 @@ def _generate_with_selected_llm(question: str, alert: dict | None, citations: li
         return None
 
     target_tier = hw["recommended_tier"] if configured_tier == "auto" else configured_tier
-    prompt = _build_llm_prompt(question, alert, citations)
+    prompt = _build_llm_prompt(question, alert, citations, history=history)
 
     raw_ans: str | None = None
     if backend == "ollama":
@@ -1307,29 +1355,48 @@ def _generate_with_selected_llm(question: str, alert: dict | None, citations: li
     return _enforce_clinical_guardrails(raw_ans, question, alert, citations) if raw_ans else None
 
 
+def _record_turn(question: str, answer_text: str) -> None:
+    """Stores the completed turn in the rolling in-process conversation memory (up to 8 entries)."""
+    if question and answer_text and answer_text != NOT_FOUND:
+        _CONVERSATION_MEMORY.append({"role": "user", "content": question})
+        _CONVERSATION_MEMORY.append({"role": "assistant", "content": answer_text})
+        if len(_CONVERSATION_MEMORY) > 8:
+            del _CONVERSATION_MEMORY[:-8]
+
+
 # ---------------------------------------------------------------------------
 # Public Contract Functions (used by backend/app/services/rag_adapter.py)
 # ---------------------------------------------------------------------------
 
-def retrieval_only(question: str, alert: dict | None = None) -> dict[str, Any]:
+def retrieval_only(
+    question: str,
+    alert: dict | None = None,
+    history: list[dict[str, str]] | None = None,
+) -> dict[str, Any]:
     """Retrieves relevant citations from Ammara's 9 sources without calling the language model."""
-    citations = _retrieve(question, alert)
+    citations = _retrieve(question, alert, history=history)
     if not citations:
         return {
             "answer": NOT_FOUND,
             "mode": "retrieval_only",
             "citations": [],
         }
+    ans = _format_retrieval_answer(question, alert, citations)
+    _record_turn(question, ans)
     return {
-        "answer": _format_retrieval_answer(question, alert, citations),
+        "answer": ans,
         "mode": "retrieval_only",
         "citations": citations,
     }
 
 
-def ask(question: str, alert: dict | None = None) -> dict[str, Any]:
+def ask(
+    question: str,
+    alert: dict | None = None,
+    history: list[dict[str, str]] | None = None,
+) -> dict[str, Any]:
     """Answers a question grounded in S1-S9, using the configured local LLM when available or retrieval_only otherwise."""
-    citations = _retrieve(question, alert)
+    citations = _retrieve(question, alert, history=history)
     if not citations:
         return {
             "answer": NOT_FOUND,
@@ -1337,16 +1404,19 @@ def ask(question: str, alert: dict | None = None) -> dict[str, Any]:
             "citations": [],
         }
 
-    llm_answer = _generate_with_selected_llm(question, alert, citations)
+    llm_answer = _generate_with_selected_llm(question, alert, citations, history=history)
     if llm_answer:
+        _record_turn(question, llm_answer)
         return {
             "answer": llm_answer,
             "mode": "llm",
             "citations": citations,
         }
 
+    fallback_ans = _format_retrieval_answer(question, alert, citations)
+    _record_turn(question, fallback_ans)
     return {
-        "answer": _format_retrieval_answer(question, alert, citations),
+        "answer": fallback_ans,
         "mode": "retrieval_only",
         "citations": citations,
     }
@@ -1501,6 +1571,12 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="Run a test question through ask() and print the JSON result.",
     )
+    parser.add_argument(
+        "--history",
+        metavar="JSON",
+        default=None,
+        help="Optional JSON array of previous conversation turns [{'role':'user'|'assistant','content':'...'}].",
+    )
 
     args = parser.parse_args(argv)
 
@@ -1529,7 +1605,15 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.question:
-        result = ask(args.question)
+        parsed_history: list[dict[str, str]] | None = None
+        if args.history:
+            try:
+                loaded_h = json.loads(args.history)
+                if isinstance(loaded_h, list):
+                    parsed_history = loaded_h
+            except Exception:
+                parsed_history = None
+        result = ask(args.question, history=parsed_history)
         print(json.dumps(result, indent=2))
         return 0
 
