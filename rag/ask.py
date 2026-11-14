@@ -337,6 +337,70 @@ CLINICAL_BOUNDARIES: dict[str, str] = {
     ),
 }
 
+# Concrete operational suggestions per topic/source when no explicit alert dict is passed
+TOPIC_SUGGESTIONS: dict[str, str] = {
+    "heart_rate": (
+        "Repeat the resting heart-rate measurement under the same conditions after 5-10 minutes of quiet rest, "
+        "verify wearable strap fit and optical contact quality, review recent sleep, hydration, and exercise load, "
+        "and follow the EIMO escalation protocol if the deviation persists across consecutive days."
+    ),
+    "sleep": (
+        "Review crew schedule, recent workload, cabin light/noise environment, and fatigue logs; "
+        "prioritize a protected rest window and apply mission-approved circadian and sleep countermeasures."
+    ),
+    "spo2": (
+        "Verify pulse-oximeter sensor placement, skin contact quality, and motion artifacts first; "
+        "repeat the reading at rest and check for any respiratory or exertion symptoms per mission protocol."
+    ),
+    "temperature": (
+        "Check wrist sensor contact and ambient thermal conditions and repeat at the same site; "
+        "if skin-temperature elevation persists or symptoms appear, take a manual core-temperature reading per medical protocol."
+    ),
+    "musculoskeletal": (
+        "Maintain scheduled resistive and aerobic countermeasure sessions and review exercise telemetry logs "
+        "with the crew medical officer."
+    ),
+    "radiation": (
+        "Refer to dedicated onboard radiation dosimetry badges and mission shielding protocols rather than wearable vital-sign monitors."
+    ),
+    "general": (
+        "Repeat the measurement under standardized resting conditions, verify wearable sensor contact quality, "
+        "review personal 7-day baseline trends, and consult the onboard EIMO medical checklist if deviations persist."
+    ),
+}
+
+
+def _infer_suggestion(question: str, alert: dict | None, citations: list[dict[str, str]]) -> str:
+    """Returns concrete actionable suggestions grounded in Ammara's protocol for both alert and free-text queries."""
+    if alert is not None and alert.get("next_step"):
+        return str(alert["next_step"]).strip()
+    q_low = (question or "").lower()
+    if any(w in q_low for w in ("heart", "hr", "bpm", "pulse", "cardiovascular")):
+        return TOPIC_SUGGESTIONS["heart_rate"]
+    if any(w in q_low for w in ("sleep", "fatigue", "circadian", "night", "rest", "tired")):
+        return TOPIC_SUGGESTIONS["sleep"]
+    if any(w in q_low for w in ("spo2", "oxygen", "saturation", "hypoxia")):
+        return TOPIC_SUGGESTIONS["spo2"]
+    if any(w in q_low for w in ("temp", "temperature", "fever", "skin", "celsius", "immune")):
+        return TOPIC_SUGGESTIONS["temperature"]
+    if any(w in q_low for w in ("bone", "muscle", "exercise", "musculoskeletal", "atrophy")):
+        return TOPIC_SUGGESTIONS["musculoskeletal"]
+    if any(w in q_low for w in ("radiation", "cosmic", "dosimetry", "shielding")):
+        return TOPIC_SUGGESTIONS["radiation"]
+
+    cited_ids = {c.get("title", "").split(":")[0].strip() for c in citations}
+    if "S7" in cited_ids:
+        return TOPIC_SUGGESTIONS["sleep"]
+    if "S6" in cited_ids:
+        return TOPIC_SUGGESTIONS["temperature"]
+    if "S2" in cited_ids:
+        return TOPIC_SUGGESTIONS["heart_rate"]
+    if "S9" in cited_ids:
+        return TOPIC_SUGGESTIONS["musculoskeletal"]
+    if "S8" in cited_ids:
+        return TOPIC_SUGGESTIONS["radiation"]
+    return TOPIC_SUGGESTIONS["general"]
+
 _STOPWORDS = {
     "a", "an", "and", "are", "as", "at", "be", "by", "can", "did", "do", "does",
     "for", "from", "had", "has", "have", "how", "i", "in", "is", "it", "its",
@@ -911,13 +975,13 @@ def _retrieve(question: str, alert: dict | None, top_k: int = 2) -> list[dict[st
 def _format_retrieval_answer(question: str, alert: dict | None, citations: list[dict[str, str]]) -> str:
     refs = "".join(f"[{i}]" for i in range(1, len(citations) + 1))
     excerpts = " ".join(f"[{i}] {c['excerpt']}" for i, c in enumerate(citations, start=1))
+    suggested_step = _infer_suggestion(question, alert, citations)
 
     if alert is not None:
         severity = (alert.get("severity") or "notice").upper()
         rule_id = alert.get("rule_id") or ""
         rule_name = alert.get("rule") or "Prototype monitoring rule"
         msg = alert.get("message") or f"{alert.get('metric')} triggered a notice."
-        step = alert.get("next_step") or "Re-measure and follow mission medical procedure."
         boundary = CLINICAL_BOUNDARIES.get(
             rule_id,
             "All numeric triggers are prototype workflow rules, not clinical thresholds.",
@@ -927,12 +991,13 @@ def _format_retrieval_answer(question: str, alert: dict | None, citations: list[
             f"{severity} - {msg} {rule_label} "
             f"Scientific library context {refs}: {excerpts} "
             f"Clinical boundary: {boundary} "
-            f"Suggested next step: {step}. "
+            f"Suggested next step: {suggested_step}. "
             f"This is a monitoring alert, not a diagnosis."
         )
 
     return (
         f"From the local scientific library {refs}: {excerpts} "
+        f"Suggested next step: {suggested_step} "
         f"Note: Curated sources provide spaceflight physiological context only and do not "
         f"establish diagnostic thresholds."
     )
@@ -947,6 +1012,7 @@ def _build_llm_prompt(question: str, alert: dict | None, citations: list[dict[st
         f"[{i}] {c['title']} — {c['source']} ({c['url']}): {c['excerpt']}"
         for i, c in enumerate(citations, start=1)
     )
+    suggested_step = _infer_suggestion(question, alert, citations)
     alert_block = ""
     if alert is not None:
         rule_id = alert.get("rule_id") or ""
@@ -956,16 +1022,19 @@ def _build_llm_prompt(question: str, alert: dict | None, citations: list[dict[st
             f"Rule ID & Name: {rule_id} ({alert.get('rule')})\n"
             f"Alert Category: {alert.get('category', 'physiological')}\n"
             f"Alert Explanation: {alert.get('message')}\n"
-            f"Suggested Next Step: {alert.get('next_step')}\n"
+            f"Suggested Next Step: {suggested_step}\n"
             f"Clinical Boundary: {boundary}\n\n"
         )
+    else:
+        alert_block = f"Recommended Operational Suggestions: {suggested_step}\n\n"
 
     return (
         "You are an offline astronaut health decision-support assistant. "
         "Keep your answer concise (3 to 5 sentences maximum) and follow these strict rules:\n"
         "1. Use ONLY the provided scientific sources and alert details.\n"
         "2. Cite sources inline as [1], [2].\n"
-        "3. State the exact Rule ID (if an alert is given), plain-language explanation, and the exact suggested next step.\n"
+        "3. State the plain-language explanation (and Rule ID if given) and ALWAYS include concrete "
+        "actionable suggestions ('Suggested next step: ...') from the provided protocol.\n"
         "4. NEVER infer a medical diagnosis, fever, infection, hypoxia, arrhythmia, or immune/psychiatric "
         "condition from wearable indicators or skin temperature. Skin temperature is not core temperature.\n"
         "5. If the alert is DATA-01 or DATA-02, state clearly that it is a data-quality or baseline-setup notice "
@@ -1161,11 +1230,27 @@ def _try_openai_compat_generate(prompt: str, preferred_model: str = "") -> str |
     return None
 
 
-def _enforce_clinical_guardrails(text: str, alert: dict | None) -> str:
-    """Ensures LLM responses never omit mandatory clinical safety disclaimers or rule identifiers."""
+def _enforce_clinical_guardrails(
+    text: str,
+    question: str,
+    alert: dict | None,
+    citations: list[dict[str, str]],
+) -> str:
+    """Ensures LLM responses always include actionable suggestions and mandatory clinical safety disclaimers."""
     cleaned = text.strip()
     if not cleaned:
         return cleaned
+
+    # Remove trailing generic disclaimer temporarily so we can place suggestions right before it
+    cleaned = re.sub(
+        r"\s*This is a monitoring alert,\s*not a diagnosis\.?\s*$",
+        "",
+        cleaned,
+        flags=re.IGNORECASE,
+    ).strip()
+
+    suggested_step = _infer_suggestion(question, alert, citations)
+
     if alert is not None:
         rule_id = (alert.get("rule_id") or "").strip()
         if rule_id and rule_id.lower() not in cleaned.lower():
@@ -1173,11 +1258,12 @@ def _enforce_clinical_guardrails(text: str, alert: dict | None) -> str:
         boundary = CLINICAL_BOUNDARIES.get(rule_id, "")
         if boundary and "infer no health event" in boundary.lower() and "infer no health event" not in cleaned.lower():
             cleaned = f"{cleaned.rstrip('. ')}. {boundary}"
-        next_step = (alert.get("next_step") or "").strip()
-        if next_step and next_step[:20].lower() not in cleaned.lower():
-            cleaned = f"{cleaned.rstrip('. ')}. Suggested next step: {next_step}."
-        if "not a diagnosis" not in cleaned.lower():
-            cleaned = f"{cleaned.rstrip('. ')}. This is a monitoring alert, not a diagnosis."
+
+    if suggested_step and "suggested next step" not in cleaned.lower() and suggested_step[:20].lower() not in cleaned.lower():
+        cleaned = f"{cleaned.rstrip('. ')}. Suggested next step: {suggested_step}"
+
+    if "not a diagnosis" not in cleaned.lower():
+        cleaned = f"{cleaned.rstrip('. ')}. This is a monitoring alert, not a diagnosis."
     return cleaned
 
 
@@ -1218,7 +1304,7 @@ def _generate_with_selected_llm(question: str, alert: dict | None, citations: li
         if not raw_ans and os.environ.get("LOCAL_OPENAI_URL"):
             raw_ans = _try_openai_compat_generate(prompt, preferred_model)
 
-    return _enforce_clinical_guardrails(raw_ans, alert) if raw_ans else None
+    return _enforce_clinical_guardrails(raw_ans, question, alert, citations) if raw_ans else None
 
 
 # ---------------------------------------------------------------------------

@@ -23,13 +23,14 @@ export default function Assistant() {
   const [msgs, setMsgs] = useState<Msg[]>([{ id: uid++, role: 'a', text: 'Hi! Ask me why an alert appeared. I answer only from the local library and show my sources.' }])
   const [q, setQ] = useState(''), [src, setSrc] = useState<SourceItem | null>(null)
   const [lastMode, setLastMode] = useState<string>('llm')
+  const [suggestions, setSuggestions] = useState<string[]>(() => buildAlerts().map((a) => a.q))
   const log = useRef<HTMLDivElement>(null), closeBtn = useRef<HTMLButtonElement>(null)
 
   const ask = useCallback(async (text: string) => {
     if (!text.trim()) return
     const tid = uid++, reading = { hr: D[29].hr, sleep: D[29].sleep }
     setMsgs((m) => [...m, { id: uid++, role: 'u', text }, { id: tid, role: 'a', typing: true }])
-    let apiData: (Answer & { mode?: string; sources?: SourceItem[] }) | null = null
+    let apiData: (Answer & { mode?: string; sources?: SourceItem[]; suggestions?: string[] }) | null = null
     try {
       const r = await fetch('/api/assistant/ask', {
         method: 'POST',
@@ -46,6 +47,9 @@ export default function Assistant() {
       sources: fallback.cites.map((i) => KB[i]),
     }
     if (res.mode) setLastMode(res.mode)
+    if (Array.isArray(apiData?.suggestions) && apiData.suggestions.length > 0) {
+      setSuggestions(apiData.suggestions)
+    }
     setMsgs((m) =>
       m.map((x) =>
         x.id === tid
@@ -103,7 +107,11 @@ export default function Assistant() {
             </div>
           ))}
         </div>
-        <div className="chips" id="chips">{buildAlerts().map((a) => <button key={a.id} onClick={() => ask(a.q)}>{a.q}</button>)}</div>
+        <div className="chips" id="chips">
+          {suggestions.map((sq) => (
+            <button key={sq} onClick={() => ask(sq)}>{sq}</button>
+          ))}
+        </div>
         <div className="inp">
           <input id="q" placeholder="Ask about an alert or an indicator" aria-label="Ask the assistant" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') send() }} />
           <button className="btn" id="send" onClick={send}>Ask<Ico d={ARR} cls="ar" /></button>

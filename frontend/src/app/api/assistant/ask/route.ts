@@ -14,6 +14,40 @@ type RagResponse = {
   disclaimer?: string
 }
 
+function buildFollowUpSuggestions(question: string): string[] {
+  const q = question.toLowerCase()
+  if (q.includes('heart') || q.includes('hr') || q.includes('bpm') || q.includes('pulse')) {
+    return [
+      'When does a persistent heart rate deviation require escalation (HR-02)?',
+      'How do I verify wearable sensor contact quality and artifacts?',
+      'What does low sleep mean for me?',
+      'Does skin temperature above baseline mean I have a fever?',
+    ]
+  }
+  if (q.includes('sleep') || q.includes('fatigue') || q.includes('circadian')) {
+    return [
+      'What sleep countermeasures does S7 recommend for multi-night restriction?',
+      'Why was my heart rate flagged?',
+      'What does an SpO2 drop below baseline mean?',
+      'What are the musculoskeletal exercise countermeasures in S9?',
+    ]
+  }
+  if (q.includes('temp') || q.includes('fever') || q.includes('immune')) {
+    return [
+      'Why can wearable skin temperature not diagnose fever or infection?',
+      'How do I verify wearable sensor contact quality and artifacts?',
+      'Why was my heart rate flagged?',
+      'What does low sleep mean for me?',
+    ]
+  }
+  return [
+    'Why was my heart rate flagged?',
+    'What does low sleep mean for me?',
+    'Does skin temperature above baseline mean I have a fever?',
+    'What does an SpO2 drop below baseline mean?',
+  ]
+}
+
 async function askViaFastApi(question: string, alertId?: string): Promise<RagResponse | null> {
   try {
     const res = await fetch(`${BACKEND_URL}/api/assistant/ask`, {
@@ -50,6 +84,7 @@ export async function POST(req: Request) {
     return Response.json({ error: 'question must be a non-empty string of at most 500 characters' }, { status: 400 })
 
   const question = b.question.trim()
+  const suggestions = buildFollowUpSuggestions(question)
   const ragRes = (await askViaFastApi(question, b.alert_id)) ?? (await askViaLocalPython(question))
 
   if (ragRes && typeof ragRes.answer === 'string') {
@@ -61,6 +96,7 @@ export async function POST(req: Request) {
       cites: citations.map((_, idx) => idx),
       citations,
       mode: ragRes.mode,
+      suggestions,
       sources: citations.map((c, idx) => ({
         id: idx,
         t: c.title,
@@ -73,5 +109,5 @@ export async function POST(req: Request) {
 
   const num = (v: unknown, d: number) => (typeof v === 'number' && isFinite(v) ? v : d)
   const a = answer(question, { hr: num(b.reading?.hr, 62), sleep: num(b.reading?.sleep, 6.8) })
-  return Response.json({ ...a, mode: 'demo', sources: a.cites.map((i) => ({ id: i, ...KB[i] })) })
+  return Response.json({ ...a, mode: 'demo', suggestions, sources: a.cites.map((i) => ({ id: i, ...KB[i] })) })
 }
