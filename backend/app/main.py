@@ -15,6 +15,7 @@ from app import config
 from app.db import database, seed
 from app.errors import register_error_handlers
 from app.routes import alerts, assistant, profile, readings, status
+from app.services import rag_adapter
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("astro")
@@ -24,6 +25,7 @@ logger = logging.getLogger("astro")
 async def lifespan(_: FastAPI):
     if not database.db_exists():
         logger.info("No database found, seeding: %s", seed.seed())
+    rag_adapter.get_ask()  # import rag.ask once so rag/index/meta.json exists before the first /api/status
     yield
 
 
