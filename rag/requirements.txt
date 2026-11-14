@@ -1,0 +1,15 @@
+# RAG & Local LLM dependencies (rag/)
+# Note: rag/ask.py also works with zero third-party packages using Python stdlib fallbacks.
+# Install from repo root with:
+#   pip install -r rag/requirements.txt
+
+--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+
+# Hardware & RAM monitoring
+psutil>=5.9.0
+
+# Standalone .gguf model inference (used when running without Ollama: --backend gguf)
+llama-cpp-python>=0.3.0
+
+# Grounding & accuracy test suite
+pytest>=8.3.3

@@ -10,17 +10,84 @@ Both functions return:
         "mode": "llm" | "retrieval_only",
         "citations": [{"title": str, "source": str, "url": str, "excerpt": str}],
     }
+
+Also provides PC hardware capability detection, model tier selection, and direct model
+downloading (GGUF into ./models/ or via Ollama):
+    python -m rag.ask --check
+    python -m rag.ask --configure
+    python -m rag.ask --download auto
 """
 from __future__ import annotations
 
+import argparse
+import ctypes
+import importlib.util
 import json
 import os
+import platform
 import re
+import shutil
+import subprocess
+import sys
 import urllib.request
 from pathlib import Path
 from typing import Any
 
 NOT_FOUND = "I cannot answer that from my sources."
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+MODELS_DIR = REPO_ROOT / "models"
+
+# Curated local LLM catalog mapped to PC hardware capability tiers.
+# Uses public Apache-2.0 / open-weights GGUF files from Hugging Face and official Ollama tags.
+MODEL_CATALOG: dict[str, dict[str, Any]] = {
+    "nano": {
+        "tier": "nano",
+        "label": "Nano (~0.5B parameters)",
+        "description": "Ultra-lightweight model for basic CPUs and low free RAM (>= 2.0 GB free).",
+        "min_ram_gb": 2.0,
+        "ollama_model": "qwen2.5:0.5b",
+        "gguf_filename": "qwen2.5-0.5b-instruct-q4_k_m.gguf",
+        "gguf_size_mb": 398,
+        "gguf_url": (
+            "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/"
+            "qwen2.5-0.5b-instruct-q4_k_m.gguf"
+        ),
+    },
+    "small": {
+        "tier": "small",
+        "label": "Small (~1.5B parameters)",
+        "description": "Balanced speed and accuracy for standard laptops (>= 4.5 GB free RAM).",
+        "min_ram_gb": 4.5,
+        "ollama_model": "qwen2.5:1.5b",
+        "gguf_filename": "qwen2.5-1.5b-instruct-q4_k_m.gguf",
+        "gguf_size_mb": 1120,
+        "gguf_url": (
+            "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/"
+            "qwen2.5-1.5b-instruct-q4_k_m.gguf"
+        ),
+    },
+    "standard": {
+        "tier": "standard",
+        "label": "Standard (~3B parameters)",
+        "description": "Higher quality reasoning for PCs with >= 8.0 GB free RAM or >= 4 GB GPU VRAM.",
+        "min_ram_gb": 7.5,
+        "ollama_model": "llama3.2:3b",
+        "gguf_filename": "qwen2.5-3b-instruct-q4_k_m.gguf",
+        "gguf_size_mb": 2050,
+        "gguf_url": (
+            "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/"
+            "qwen2.5-3b-instruct-q4_k_m.gguf"
+        ),
+    },
+}
+
+DEFAULT_LLM_CONFIG: dict[str, str] = {
+    "backend": "gguf",        # gguf (default, standalone without Ollama) | auto | ollama | openai | off
+    "tier": "auto",           # auto | nano | small | standard | off
+    "preferred_model": "",    # specific GGUF filename inside models_dir (or Ollama tag)
+    "models_dir": "models",   # folder where .gguf models are downloaded and loaded from
+}
 
 # Ammara's Curated Scientific Library (Section 5, S1-S9, 13 Nov 2026).
 # DOIs are used as stable links. None of these sources establishes a clinical numeric cut-off;
@@ -279,15 +346,30 @@ _STOPWORDS = {
     "mean", "explain", "tell", "about", "happened", "research", "say", "says",
 }
 
+_GGUF_CACHE: dict[str, Any] = {}
+
+
+def _meta_path() -> Path:
+    index_dir = Path(os.environ.get("RAG_INDEX_DIR", REPO_ROOT / "rag" / "index"))
+    return index_dir / "meta.json"
+
 
 def _ensure_default_meta() -> None:
     """Ensures rag/index/meta.json exists in the repo folder even on a fresh git clone."""
-    meta_path = Path(__file__).resolve().parent / "index" / "meta.json"
+    meta_path = _meta_path()
     if not meta_path.is_file():
         try:
             meta_path.parent.mkdir(parents=True, exist_ok=True)
             meta_path.write_text(
-                json.dumps({"documents_indexed": len(DEFAULT_CORPUS)}, indent=2) + "\n",
+                json.dumps(
+                    {
+                        "documents_indexed": len(DEFAULT_CORPUS),
+                        "source_ids": [d["id"] for d in DEFAULT_CORPUS],
+                        "llm_config": dict(DEFAULT_LLM_CONFIG),
+                    },
+                    indent=2,
+                )
+                + "\n",
                 encoding="utf-8",
             )
         except Exception:
@@ -297,10 +379,456 @@ def _ensure_default_meta() -> None:
 _ensure_default_meta()
 
 
+# ---------------------------------------------------------------------------
+# Hardware Capability Detection & Configuration Management
+# ---------------------------------------------------------------------------
+
+def _get_memory_gb() -> tuple[float, float]:
+    """Returns (total_ram_gb, available_ram_gb) using Python stdlib across Windows/Linux/macOS."""
+    # Optional psutil if present
+    try:
+        import psutil  # type: ignore
+        vm = psutil.virtual_memory()
+        return round(vm.total / (1024 ** 3), 2), round(vm.available / (1024 ** 3), 2)
+    except Exception:
+        pass
+
+    sys_name = platform.system().lower()
+    if sys_name == "windows":
+        try:
+            class MEMORYSTATUSEX(ctypes.Structure):
+                _fields_ = [
+                    ("dwLength", ctypes.c_ulong),
+                    ("dwMemoryLoad", ctypes.c_ulong),
+                    ("ullTotalPhys", ctypes.c_ulonglong),
+                    ("ullAvailPhys", ctypes.c_ulonglong),
+                    ("ullTotalPageFile", ctypes.c_ulonglong),
+                    ("ullAvailPageFile", ctypes.c_ulonglong),
+                    ("ullTotalVirtual", ctypes.c_ulonglong),
+                    ("ullAvailVirtual", ctypes.c_ulonglong),
+                    ("sullAvailExtendedVirtual", ctypes.c_ulonglong),
+                ]
+
+            stat = MEMORYSTATUSEX()
+            stat.dwLength = ctypes.sizeof(stat)
+            if ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(stat)):  # type: ignore[attr-defined]
+                total = round(stat.ullTotalPhys / (1024 ** 3), 2)
+                avail = round(stat.ullAvailPhys / (1024 ** 3), 2)
+                return total, avail
+        except Exception:
+            pass
+    elif sys_name == "linux":
+        try:
+            meminfo = Path("/proc/meminfo").read_text(encoding="utf-8")
+            total_kb = avail_kb = 0
+            for line in meminfo.splitlines():
+                if line.startswith("MemTotal:"):
+                    total_kb = int(line.split()[1])
+                elif line.startswith("MemAvailable:"):
+                    avail_kb = int(line.split()[1])
+            if total_kb > 0:
+                return round(total_kb / (1024 ** 2), 2), round(avail_kb / (1024 ** 2), 2)
+        except Exception:
+            pass
+    elif sys_name == "darwin":
+        try:
+            out = subprocess.check_output(["sysctl", "-n", "hw.memsize"], text=True, timeout=2.0).strip()
+            total_b = int(out)
+            total_gb = round(total_b / (1024 ** 3), 2)
+            return total_gb, round(total_gb * 0.5, 2)
+        except Exception:
+            pass
+
+    return 8.0, 4.0
+
+
+def _get_gpu_info() -> tuple[str | None, float]:
+    """Detects NVIDIA/dedicated GPU name and total VRAM in GB if available."""
+    if shutil.which("nvidia-smi"):
+        try:
+            out = subprocess.check_output(
+                ["nvidia-smi", "--query-gpu=name,memory.total", "--format=csv,noheader,nounits"],
+                text=True,
+                timeout=2.0,
+                stderr=subprocess.DEVNULL,
+            ).strip()
+            if out:
+                first_line = out.splitlines()[0]
+                parts = [p.strip() for p in first_line.split(",")]
+                if len(parts) >= 2:
+                    return parts[0], round(float(parts[1]) / 1024.0, 2)
+        except Exception:
+            pass
+    return None, 0.0
+
+
+def _list_ollama_models() -> tuple[bool, list[str]]:
+    """Returns (server_reachable, list_of_installed_model_names)."""
+    base_url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
+    try:
+        with urllib.request.urlopen(f"{base_url}/api/tags", timeout=1.0) as resp:
+            if resp.status == 200:
+                tags_data = json.loads(resp.read().decode("utf-8"))
+                models = [str(m.get("name")) for m in tags_data.get("models", []) if m.get("name")]
+                return True, models
+    except Exception:
+        pass
+    return False, []
+
+
+def get_models_dir(custom_dir: str | Path | None = None) -> Path:
+    """Resolves the directory where .gguf models are downloaded and loaded from.
+
+    Priority:
+      1. Explicit custom_dir argument (e.g. --models-dir)
+      2. RAG_MODELS_DIR environment variable
+      3. llm_config['models_dir'] inside rag/index/meta.json
+      4. Default: <repo_root>/models
+    """
+    raw = str(custom_dir).strip() if custom_dir else ""
+    if not raw:
+        raw = os.environ.get("RAG_MODELS_DIR", "").strip()
+    if not raw:
+        meta_path = _meta_path()
+        if meta_path.is_file():
+            try:
+                data = json.loads(meta_path.read_text(encoding="utf-8"))
+                saved_dir = (data.get("llm_config") or {}).get("models_dir")
+                if saved_dir:
+                    raw = str(saved_dir).strip()
+            except Exception:
+                pass
+    if not raw:
+        return MODELS_DIR
+    p = Path(raw).expanduser()
+    if not p.is_absolute():
+        p = REPO_ROOT / p
+    return p.resolve()
+
+
+def _list_gguf_models(models_dir: Path | None = None) -> list[dict[str, Any]]:
+    """Lists .gguf model files present in the configured models directory."""
+    target_dir = models_dir or get_models_dir()
+    if not target_dir.is_dir():
+        return []
+    found: list[dict[str, Any]] = []
+    for p in sorted(target_dir.glob("*.gguf")):
+        if p.is_file():
+            found.append({
+                "name": p.name,
+                "path": str(p),
+                "size_mb": round(p.stat().st_size / (1024 ** 2), 1),
+            })
+    return found
+
+
+def detect_hardware(models_dir: Path | None = None) -> dict[str, Any]:
+    """Inspects PC hardware (RAM, CPU, disk, GPU) and available local LLM runtimes."""
+    active_models_dir = models_dir or get_models_dir()
+    total_ram_gb, avail_ram_gb = _get_memory_gb()
+    gpu_name, vram_gb = _get_gpu_info()
+    cpu_cores = os.cpu_count() or 2
+    try:
+        probe_path = active_models_dir if active_models_dir.exists() else active_models_dir.anchor or REPO_ROOT
+        disk_free_gb = round(shutil.disk_usage(probe_path).free / (1024 ** 3), 2)
+    except Exception:
+        try:
+            disk_free_gb = round(shutil.disk_usage(REPO_ROOT).free / (1024 ** 3), 2)
+        except Exception:
+            disk_free_gb = 0.0
+
+    ollama_cli = shutil.which("ollama") is not None
+    ollama_running, ollama_models = _list_ollama_models()
+    gguf_models = _list_gguf_models(active_models_dir)
+    llama_cpp_installed = importlib.util.find_spec("llama_cpp") is not None
+
+    # Determine recommended model tier based on available RAM and GPU VRAM
+    if avail_ram_gb < 2.0 and vram_gb < 4.0:
+        recommended_tier = "off"
+        reason = (
+            f"Low available RAM ({avail_ram_gb} GB < 2.0 GB minimum). "
+            "Retrieval-only mode recommended to prevent system freeze or timeout."
+        )
+    elif avail_ram_gb >= 8.0 or vram_gb >= 4.0:
+        recommended_tier = "standard"
+        reason = (
+            f"High capacity detected ({avail_ram_gb} GB free RAM"
+            + (f", GPU {gpu_name} {vram_gb} GB VRAM" if gpu_name else "")
+            + "). Supports 'standard' (~3B), 'small' (~1.5B), and 'nano' (~0.5B) models."
+        )
+    elif avail_ram_gb >= 4.5:
+        recommended_tier = "small"
+        reason = (
+            f"Medium capacity detected ({avail_ram_gb} GB free RAM, {cpu_cores} CPU threads). "
+            "Supports 'small' (~1.5B) and 'nano' (~0.5B) models smoothly."
+        )
+    else:
+        recommended_tier = "nano"
+        reason = (
+            f"Modest available RAM ({avail_ram_gb} GB free). "
+            "Supports 'nano' (~0.5B, ~400 MB) lightweight models."
+        )
+
+    return {
+        "os": f"{platform.system()} {platform.release()}",
+        "architecture": platform.machine(),
+        "cpu_cores": cpu_cores,
+        "ram_total_gb": total_ram_gb,
+        "ram_available_gb": avail_ram_gb,
+        "disk_free_gb": disk_free_gb,
+        "gpu_name": gpu_name,
+        "vram_gb": vram_gb,
+        "models_dir": str(active_models_dir),
+        "ollama_installed": ollama_cli,
+        "ollama_running": ollama_running,
+        "ollama_models": ollama_models,
+        "gguf_models": [m["name"] for m in gguf_models],
+        "llama_cpp_installed": llama_cpp_installed,
+        "recommended_tier": recommended_tier,
+        "recommendation_reason": reason,
+    }
+
+
+def load_llm_config() -> dict[str, str]:
+    """Loads active LLM configuration from rag/index/meta.json overlaid with environment variables."""
+    cfg = dict(DEFAULT_LLM_CONFIG)
+    meta_path = _meta_path()
+    if meta_path.is_file():
+        try:
+            data = json.loads(meta_path.read_text(encoding="utf-8"))
+            saved = data.get("llm_config")
+            if isinstance(saved, dict):
+                for k in DEFAULT_LLM_CONFIG:
+                    if saved.get(k) is not None:
+                        cfg[k] = str(saved[k]).strip()
+        except Exception:
+            pass
+
+    if os.environ.get("RAG_LLM_BACKEND"):
+        cfg["backend"] = os.environ["RAG_LLM_BACKEND"].strip().lower()
+    if os.environ.get("RAG_MODEL_TIER"):
+        cfg["tier"] = os.environ["RAG_MODEL_TIER"].strip().lower()
+    if os.environ.get("OLLAMA_MODEL"):
+        cfg["preferred_model"] = os.environ["OLLAMA_MODEL"].strip()
+    elif os.environ.get("RAG_GGUF_MODEL"):
+        cfg["preferred_model"] = os.environ["RAG_GGUF_MODEL"].strip()
+    if os.environ.get("RAG_MODELS_DIR"):
+        cfg["models_dir"] = os.environ["RAG_MODELS_DIR"].strip()
+
+    return cfg
+
+
+def save_llm_config(
+    backend: str | None = None,
+    tier: str | None = None,
+    preferred_model: str | None = None,
+    models_dir: str | None = None,
+) -> dict[str, Any]:
+    """Saves LLM selection, models directory, and current hardware profile into rag/index/meta.json."""
+    meta_path = _meta_path()
+    meta_path.parent.mkdir(parents=True, exist_ok=True)
+    payload: dict[str, Any] = {
+        "documents_indexed": len(DEFAULT_CORPUS),
+        "source_ids": [d["id"] for d in DEFAULT_CORPUS],
+    }
+    if meta_path.is_file():
+        try:
+            existing = json.loads(meta_path.read_text(encoding="utf-8"))
+            if isinstance(existing, dict):
+                payload.update(existing)
+        except Exception:
+            pass
+
+    cfg = dict(DEFAULT_LLM_CONFIG)
+    if isinstance(payload.get("llm_config"), dict):
+        cfg.update(payload["llm_config"])
+
+    if backend is not None:
+        cfg["backend"] = backend.strip().lower()
+    if tier is not None:
+        cfg["tier"] = tier.strip().lower()
+    if preferred_model is not None:
+        cfg["preferred_model"] = preferred_model.strip()
+    if models_dir is not None and models_dir.strip():
+        cfg["models_dir"] = models_dir.strip()
+
+    resolved_dir = get_models_dir(cfg.get("models_dir"))
+    hw = detect_hardware(resolved_dir)
+    payload["documents_indexed"] = int(payload.get("documents_indexed") or len(DEFAULT_CORPUS))
+    payload["llm_config"] = cfg
+    payload["hardware_detected"] = {
+        "os": hw["os"],
+        "cpu_cores": hw["cpu_cores"],
+        "ram_total_gb": hw["ram_total_gb"],
+        "ram_available_gb": hw["ram_available_gb"],
+        "gpu_name": hw["gpu_name"],
+        "vram_gb": hw["vram_gb"],
+        "recommended_tier": hw["recommended_tier"],
+    }
+
+    meta_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return payload
+
+
+def _register_gguf_with_ollama(gguf_path: Path, model_tag: str) -> bool:
+    """If Ollama CLI is installed and running, registers the local GGUF file so Ollama can serve it."""
+    if not shutil.which("ollama"):
+        return False
+    modelfile_path = gguf_path.parent / f"{gguf_path.stem}.Modelfile"
+    try:
+        modelfile_content = (
+            f'FROM "{gguf_path.resolve()}"\n'
+            'TEMPLATE """<|im_start|>user\n{{ .Prompt }}<|im_end|>\n<|im_start|>assistant\n"""\n'
+            "PARAMETER temperature 0.1\n"
+            "PARAMETER num_predict 350\n"
+            'PARAMETER stop "<|im_start|>"\n'
+            'PARAMETER stop "<|im_end|>"\n'
+            'PARAMETER stop "<|endoftext|>"\n'
+        )
+        modelfile_path.write_text(modelfile_content, encoding="utf-8")
+        res = subprocess.run(
+            ["ollama", "create", model_tag, "-f", str(modelfile_path)],
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        return res.returncode == 0
+    except Exception:
+        return False
+    finally:
+        try:
+            if modelfile_path.is_file():
+                modelfile_path.unlink()
+        except Exception:
+            pass
+
+
+def download_model(
+    target: str = "auto",
+    backend: str = "gguf",
+    models_dir: str | Path | None = None,
+) -> dict[str, Any]:
+    """Downloads a model suitable for the PC into the configured models folder (.gguf by default) or via Ollama."""
+    target_dir = get_models_dir(models_dir)
+    hw = detect_hardware(target_dir)
+    resolved_tier = target.strip().lower()
+    if resolved_tier == "auto":
+        resolved_tier = hw["recommended_tier"]
+        if resolved_tier == "off":
+            resolved_tier = "nano"
+        print(f"[Auto-Detect] Selected '{resolved_tier}' tier based on PC hardware ({hw['ram_available_gb']} GB free RAM).")
+
+    chosen_backend = backend.strip().lower()
+    if chosen_backend == "auto":
+        # Default to standalone .gguf download (no Ollama dependency)
+        chosen_backend = "gguf"
+
+    # Case 1: Download via Ollama CLI
+    if chosen_backend == "ollama":
+        if not hw["ollama_installed"]:
+            raise RuntimeError(
+                "Ollama CLI is not installed on this PC. Use '--backend gguf' to download "
+                f"a standalone .gguf file directly into '{target_dir}'."
+            )
+        model_tag = MODEL_CATALOG[resolved_tier]["ollama_model"] if resolved_tier in MODEL_CATALOG else target
+        print(f"[Ollama] Pulling model '{model_tag}'...")
+        proc = subprocess.run(["ollama", "pull", model_tag])
+        if proc.returncode != 0:
+            raise RuntimeError(f"'ollama pull {model_tag}' failed with exit code {proc.returncode}.")
+        save_llm_config(
+            backend="ollama",
+            tier=resolved_tier if resolved_tier in MODEL_CATALOG else "auto",
+            preferred_model=model_tag,
+            models_dir=str(models_dir) if models_dir else None,
+        )
+        return {
+            "status": "ok",
+            "backend": "ollama",
+            "model": model_tag,
+            "tier": resolved_tier,
+            "models_dir": str(target_dir),
+        }
+
+    # Case 2: Direct GGUF download into target_dir (configurable folder)
+    if resolved_tier in MODEL_CATALOG:
+        spec = MODEL_CATALOG[resolved_tier]
+        url = spec["gguf_url"]
+        filename = spec["gguf_filename"]
+        expected_mb = float(spec["gguf_size_mb"])
+    elif target.startswith("http://") or target.startswith("https://"):
+        url = target
+        filename = target.rstrip("/").split("/")[-1]
+        if not filename.endswith(".gguf"):
+            filename += ".gguf"
+        expected_mb = 500.0
+    else:
+        raise ValueError(
+            f"Unknown model tier '{target}'. Choose from: auto, nano, small, standard, or a direct https://...gguf URL."
+        )
+
+    required_gb = round((expected_mb * 1.2) / 1024.0, 2)
+    if hw["disk_free_gb"] > 0 and hw["disk_free_gb"] < required_gb:
+        raise RuntimeError(
+            f"Insufficient disk space in '{target_dir}': {hw['disk_free_gb']} GB free, need at least {required_gb} GB."
+        )
+
+    target_dir.mkdir(parents=True, exist_ok=True)
+    dest_path = target_dir / filename
+    part_path = target_dir / f"{filename}.part"
+
+    if dest_path.is_file() and dest_path.stat().st_size > 1024 * 1024:
+        print(f"[GGUF] File already exists at {dest_path} ({round(dest_path.stat().st_size / (1024**2), 1)} MB).")
+    else:
+        print(f"[GGUF] Downloading {filename} (~{int(expected_mb)} MB) from Hugging Face...")
+        print(f"       URL:  {url}")
+        print(f"       Dest: {dest_path}")
+        req = urllib.request.Request(url, headers={"User-Agent": "AstroHealthCompanion/1.0"})
+        with urllib.request.urlopen(req, timeout=60) as resp, open(part_path, "wb") as out_file:
+            total_bytes = int(resp.headers.get("Content-Length") or 0)
+            downloaded = 0
+            chunk_size = 1024 * 512
+            while True:
+                chunk = resp.read(chunk_size)
+                if not chunk:
+                    break
+                out_file.write(chunk)
+                downloaded += len(chunk)
+                if total_bytes > 0:
+                    pct = min(100.0, downloaded * 100.0 / total_bytes)
+                    filled = int(pct // 4)
+                    bar = "#" * filled + "-" * (25 - filled)
+                    mb_done = downloaded / (1024 ** 2)
+                    mb_total = total_bytes / (1024 ** 2)
+                    sys.stdout.write(f"\r       [{bar}] {pct:5.1f}% ({mb_done:6.1f} / {mb_total:6.1f} MB)")
+                    sys.stdout.flush()
+        print("\n[GGUF] Download complete.")
+        part_path.replace(dest_path)
+
+    active_backend = "gguf"
+    active_model = dest_path.name
+    save_llm_config(
+        backend=active_backend,
+        tier=resolved_tier if resolved_tier in MODEL_CATALOG else "auto",
+        preferred_model=active_model,
+        models_dir=str(models_dir) if models_dir else None,
+    )
+    return {
+        "status": "ok",
+        "backend": active_backend,
+        "model": active_model,
+        "models_dir": str(target_dir),
+        "gguf_path": str(dest_path),
+        "tier": resolved_tier,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Retrieval Pipeline
+# ---------------------------------------------------------------------------
+
 def _load_corpus() -> list[dict[str, Any]]:
     """Loads custom corpus from RAG_INDEX_DIR/corpus.json if present, else DEFAULT_CORPUS."""
-    repo_root = Path(__file__).resolve().parents[1]
-    index_dir = Path(os.environ.get("RAG_INDEX_DIR", repo_root / "rag" / "index"))
+    index_dir = Path(os.environ.get("RAG_INDEX_DIR", REPO_ROOT / "rag" / "index"))
     corpus_file = index_dir / "corpus.json"
     if corpus_file.is_file():
         try:
@@ -410,26 +938,11 @@ def _format_retrieval_answer(question: str, alert: dict | None, citations: list[
     )
 
 
-def _try_ollama_generate(question: str, alert: dict | None, citations: list[dict[str, str]]) -> str | None:
-    """Calls local Ollama server if reachable and a model is available; returns None on any error."""
-    base_url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
-    model = os.environ.get("OLLAMA_MODEL", "").strip()
+# ---------------------------------------------------------------------------
+# Multi-Backend LLM Generation (Ollama, Standalone GGUF, OpenAI-Compatible)
+# ---------------------------------------------------------------------------
 
-    try:
-        with urllib.request.urlopen(f"{base_url}/api/tags", timeout=1.0) as resp:
-            if resp.status != 200:
-                return None
-            tags_data = json.loads(resp.read().decode("utf-8"))
-            models = [m.get("name") for m in tags_data.get("models", []) if m.get("name")]
-            if not model:
-                if not models:
-                    return None
-                model = models[0]
-            elif model not in models and f"{model}:latest" not in models:
-                return None
-    except Exception:
-        return None
-
+def _build_llm_prompt(question: str, alert: dict | None, citations: list[dict[str, str]]) -> str:
     context_blocks = "\n".join(
         f"[{i}] {c['title']} — {c['source']} ({c['url']}): {c['excerpt']}"
         for i, c in enumerate(citations, start=1)
@@ -447,12 +960,12 @@ def _try_ollama_generate(question: str, alert: dict | None, citations: list[dict
             f"Clinical Boundary: {boundary}\n\n"
         )
 
-    prompt = (
+    return (
         "You are an offline astronaut health decision-support assistant. "
-        "Follow these strict rules:\n"
+        "Keep your answer concise (3 to 5 sentences maximum) and follow these strict rules:\n"
         "1. Use ONLY the provided scientific sources and alert details.\n"
         "2. Cite sources inline as [1], [2].\n"
-        "3. State the rule ID, plain-language explanation, and suggested next step.\n"
+        "3. State the exact Rule ID (if an alert is given), plain-language explanation, and the exact suggested next step.\n"
         "4. NEVER infer a medical diagnosis, fever, infection, hypoxia, arrhythmia, or immune/psychiatric "
         "condition from wearable indicators or skin temperature. Skin temperature is not core temperature.\n"
         "5. If the alert is DATA-01 or DATA-02, state clearly that it is a data-quality or baseline-setup notice "
@@ -464,11 +977,52 @@ def _try_ollama_generate(question: str, alert: dict | None, citations: list[dict
         "Answer:"
     )
 
+
+def _select_best_ollama_model(models: list[str], preferred: str, target_tier: str) -> str | None:
+    if not models:
+        return None
+    if preferred:
+        for m in models:
+            if m == preferred or m == f"{preferred}:latest" or m.split(":")[0] == preferred:
+                return m
+
+    tier_order = {
+        "nano": ["0.5b", "1b", "nano"],
+        "small": ["1.5b", "1b", "2b", "small", "0.5b"],
+        "standard": ["3b", "4b", "7b", "8b", "standard", "1.5b", "1b"],
+    }.get(target_tier, ["1.5b", "1b", "3b", "0.5b"])
+
+    for token in tier_order:
+        for m in models:
+            if token in m.lower():
+                return m
+    return models[0]
+
+
+def _try_ollama_generate(
+    prompt: str,
+    preferred_model: str = "",
+    target_tier: str = "small",
+) -> str | None:
+    """Calls local Ollama server if reachable and a model is available; returns None on any error."""
+    base_url = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
+    reachable, models = _list_ollama_models()
+    if not reachable or not models:
+        return None
+
+    model = _select_best_ollama_model(models, preferred_model, target_tier)
+    if not model:
+        return None
+
     payload = json.dumps({
         "model": model,
         "prompt": prompt,
         "stream": False,
-        "options": {"temperature": 0.1},
+        "options": {
+            "temperature": 0.1,
+            "num_predict": 350,
+            "stop": ["<|im_end|>", "<|im_start|>", "<|endoftext|>", "\nQuestion:", "\nSources:"],
+        },
     }).encode("utf-8")
 
     req = urllib.request.Request(
@@ -484,10 +1038,178 @@ def _try_ollama_generate(question: str, alert: dict | None, citations: list[dict
                 return None
             body = json.loads(resp.read().decode("utf-8"))
             text = (body.get("response") or "").strip()
+            text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
             return text if text else None
     except Exception:
         return None
 
+
+def _select_best_gguf_file(preferred: str, target_tier: str, avail_ram_gb: float) -> Path | None:
+    gguf_files = _list_gguf_models()
+    if not gguf_files:
+        return None
+
+    # Filter out GGUF files whose size exceeds safe available RAM
+    max_file_mb = max(450.0, (avail_ram_gb - 1.0) * 1024.0)
+    compatible = [g for g in gguf_files if g["size_mb"] <= max_file_mb] or gguf_files
+
+    if preferred:
+        for g in compatible:
+            if g["name"].lower() == preferred.lower() or preferred.lower() in g["name"].lower():
+                return Path(g["path"])
+
+    if target_tier in MODEL_CATALOG:
+        expected_name = MODEL_CATALOG[target_tier]["gguf_filename"].lower()
+        for g in compatible:
+            if g["name"].lower() == expected_name:
+                return Path(g["path"])
+
+    # Pick lightest for nano, medium for small, largest compatible for standard
+    if target_tier == "nano":
+        compatible.sort(key=lambda x: x["size_mb"])
+    elif target_tier == "standard":
+        compatible.sort(key=lambda x: x["size_mb"], reverse=True)
+    else:
+        compatible.sort(key=lambda x: abs(x["size_mb"] - 1100.0))
+
+    return Path(compatible[0]["path"])
+
+
+def _try_gguf_generate(
+    prompt: str,
+    preferred_model: str = "",
+    target_tier: str = "small",
+    avail_ram_gb: float = 4.0,
+) -> str | None:
+    """Runs inference directly against a local .gguf file in ./models/ using llama-cpp-python if installed."""
+    gguf_path = _select_best_gguf_file(preferred_model, target_tier, avail_ram_gb)
+    if gguf_path is None or not gguf_path.is_file():
+        return None
+
+    try:
+        from llama_cpp import Llama  # type: ignore
+    except Exception:
+        return None
+
+    try:
+        key = str(gguf_path.resolve())
+        if key not in _GGUF_CACHE:
+            threads = max(1, min(8, (os.cpu_count() or 4)))
+            _GGUF_CACHE[key] = Llama(
+                model_path=key,
+                n_ctx=2048,
+                n_threads=threads,
+                n_gpu_layers=-1,
+                verbose=False,
+            )
+        llm = _GGUF_CACHE[key]
+        output = llm.create_chat_completion(
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=350,
+            temperature=0.1,
+            stop=["<|im_end|>", "<|endoftext|>", "\nQuestion:", "\nSources:"],
+        )
+        choices = output.get("choices", []) if isinstance(output, dict) else []
+        if choices:
+            msg = choices[0].get("message") or {}
+            text = (msg.get("content") or choices[0].get("text") or "").strip()
+            text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+            return text if text else None
+    except Exception:
+        return None
+    return None
+
+
+def _try_openai_compat_generate(prompt: str, preferred_model: str = "") -> str | None:
+    """Calls a local OpenAI-compatible server (e.g., LM Studio or llama-server) if configured."""
+    base_url = os.environ.get("LOCAL_OPENAI_URL", "http://127.0.0.1:1234/v1").rstrip("/")
+    payload = json.dumps({
+        "model": preferred_model or "local-model",
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.1,
+        "max_tokens": 280,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        f"{base_url}/chat/completions",
+        data=payload,
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    timeout = max(1.0, float(os.environ.get("ASK_TIMEOUT_SECONDS", "20")) - 2.0)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            if resp.status != 200:
+                return None
+            body = json.loads(resp.read().decode("utf-8"))
+            choices = body.get("choices") or []
+            if choices:
+                text = ((choices[0].get("message") or {}).get("content") or "").strip()
+                return text if text else None
+    except Exception:
+        return None
+    return None
+
+
+def _enforce_clinical_guardrails(text: str, alert: dict | None) -> str:
+    """Ensures LLM responses never omit mandatory clinical safety disclaimers or rule identifiers."""
+    cleaned = text.strip()
+    if not cleaned:
+        return cleaned
+    if alert is not None:
+        rule_id = (alert.get("rule_id") or "").strip()
+        if rule_id and rule_id.lower() not in cleaned.lower():
+            cleaned = f"Rule {rule_id}: {cleaned}"
+        boundary = CLINICAL_BOUNDARIES.get(rule_id, "")
+        if boundary and "infer no health event" in boundary.lower() and "infer no health event" not in cleaned.lower():
+            cleaned = f"{cleaned.rstrip('. ')}. {boundary}"
+        next_step = (alert.get("next_step") or "").strip()
+        if next_step and next_step[:20].lower() not in cleaned.lower():
+            cleaned = f"{cleaned.rstrip('. ')}. Suggested next step: {next_step}."
+        if "not a diagnosis" not in cleaned.lower():
+            cleaned = f"{cleaned.rstrip('. ')}. This is a monitoring alert, not a diagnosis."
+    return cleaned
+
+
+def _generate_with_selected_llm(question: str, alert: dict | None, citations: list[dict[str, str]]) -> str | None:
+    """Evaluates PC capabilities and active LLM config, then routes to the chosen local model backend."""
+    cfg = load_llm_config()
+    backend = cfg.get("backend", "auto").lower()
+    configured_tier = cfg.get("tier", "auto").lower()
+    preferred_model = cfg.get("preferred_model", "")
+
+    if backend in ("off", "retrieval_only", "none") or configured_tier in ("off", "retrieval_only", "none"):
+        return None
+
+    hw = detect_hardware()
+    # Hardware guardrail: if PC has critically low free RAM (< 2.0 GB) and no GPU VRAM, skip LLM in auto mode
+    if configured_tier == "auto" and hw["recommended_tier"] == "off":
+        return None
+
+    target_tier = hw["recommended_tier"] if configured_tier == "auto" else configured_tier
+    prompt = _build_llm_prompt(question, alert, citations)
+
+    raw_ans: str | None = None
+    if backend == "ollama":
+        raw_ans = _try_ollama_generate(prompt, preferred_model, target_tier)
+    elif backend == "gguf":
+        raw_ans = _try_gguf_generate(prompt, preferred_model, target_tier, hw["ram_available_gb"])
+    elif backend in ("openai", "openai_compat", "lmstudio"):
+        raw_ans = _try_openai_compat_generate(prompt, preferred_model)
+    else:
+        # backend == "auto": try standalone local GGUF first (no Ollama needed), then Ollama, then OpenAI-compatible
+        raw_ans = _try_gguf_generate(prompt, preferred_model, target_tier, hw["ram_available_gb"])
+        if not raw_ans:
+            raw_ans = _try_ollama_generate(prompt, preferred_model, target_tier)
+        if not raw_ans and os.environ.get("LOCAL_OPENAI_URL"):
+            raw_ans = _try_openai_compat_generate(prompt, preferred_model)
+
+    return _enforce_clinical_guardrails(raw_ans, alert) if raw_ans else None
+
+
+# ---------------------------------------------------------------------------
+# Public Contract Functions (used by backend/app/services/rag_adapter.py)
+# ---------------------------------------------------------------------------
 
 def retrieval_only(question: str, alert: dict | None = None) -> dict[str, Any]:
     """Retrieves relevant citations from Ammara's 9 sources without calling the language model."""
@@ -506,7 +1228,7 @@ def retrieval_only(question: str, alert: dict | None = None) -> dict[str, Any]:
 
 
 def ask(question: str, alert: dict | None = None) -> dict[str, Any]:
-    """Answers a question grounded in S1-S9, using Ollama when available or retrieval_only otherwise."""
+    """Answers a question grounded in S1-S9, using the configured local LLM when available or retrieval_only otherwise."""
     citations = _retrieve(question, alert)
     if not citations:
         return {
@@ -515,7 +1237,7 @@ def ask(question: str, alert: dict | None = None) -> dict[str, Any]:
             "citations": [],
         }
 
-    llm_answer = _try_ollama_generate(question, alert, citations)
+    llm_answer = _generate_with_selected_llm(question, alert, citations)
     if llm_answer:
         return {
             "answer": llm_answer,
@@ -528,3 +1250,194 @@ def ask(question: str, alert: dict | None = None) -> dict[str, Any]:
         "mode": "retrieval_only",
         "citations": citations,
     }
+
+
+# ---------------------------------------------------------------------------
+# CLI: Hardware Check, Model Selection & Interactive Downloader
+# ---------------------------------------------------------------------------
+
+def _print_status_report() -> dict[str, Any]:
+    hw = detect_hardware()
+    cfg = load_llm_config()
+    print("=" * 72)
+    print(" ASTRO-HEALTH COMPANION - PC HARDWARE & LOCAL LLM CAPABILITY REPORT")
+    print("=" * 72)
+    print(f" OS / Arch          : {hw['os']} ({hw['architecture']})")
+    print(f" CPU Logical Cores  : {hw['cpu_cores']}")
+    print(f" System RAM         : {hw['ram_available_gb']} GB available / {hw['ram_total_gb']} GB total")
+    print(f" Free Disk Space    : {hw['disk_free_gb']} GB (at {hw['models_dir']})")
+    print(f" Dedicated GPU      : {hw['gpu_name'] or 'None detected'} ({hw['vram_gb']} GB VRAM)")
+    print("-" * 72)
+    print(f" Recommended Tier   : {hw['recommended_tier'].upper()}")
+    print(f" Assessment         : {hw['recommendation_reason']}")
+    print("-" * 72)
+    print(f" Models Directory   : {hw['models_dir']}")
+    print(f" Ollama CLI / API   : installed={hw['ollama_installed']} | running={hw['ollama_running']}")
+    print(f" Ollama Models      : {hw['ollama_models'] or 'None'}")
+    print(f" Local GGUF Models  : {hw['gguf_models'] or 'None'}")
+    print(f" llama-cpp-python   : installed={hw['llama_cpp_installed']}")
+    print("-" * 72)
+    print(" Active Configuration (rag/index/meta.json + env):")
+    print(f"   backend          : {cfg['backend']}")
+    print(f"   tier             : {cfg['tier']}")
+    print(f"   preferred_model  : {cfg['preferred_model'] or '(auto)'}")
+    print(f"   models_dir       : {cfg['models_dir']}")
+    print("=" * 72)
+    return hw
+
+
+def _interactive_configure() -> None:
+    hw = _print_status_report()
+    cfg = load_llm_config()
+    rec_tier = hw["recommended_tier"] if hw["recommended_tier"] != "off" else "nano"
+    rec_spec = MODEL_CATALOG[rec_tier]
+
+    print("\nSelect an action:")
+    print(
+        f"  [1] Download recommended model for this PC ({rec_spec['label']} - "
+        f"~{rec_spec['gguf_size_mb']} MB)"
+    )
+    print("  [2] Choose a specific model tier to download (nano / small / standard)")
+    print("  [3] Configure backend, tier, or models download folder without downloading")
+    print("  [4] Disable LLM (use fast deterministic retrieval_only mode)")
+    print("  [5] Exit without changes")
+
+    choice = input("\nEnter option [1-5] (default 1): ").strip() or "1"
+    if choice == "5":
+        print("No changes made.")
+        return
+
+    if choice == "4":
+        save_llm_config(backend="off", tier="off", preferred_model="")
+        print("Saved configuration: LLM disabled (retrieval_only mode active).")
+        return
+
+    if choice in ("1", "2"):
+        tier_to_get = rec_tier
+        if choice == "2":
+            print("\nAvailable model tiers:")
+            for k, spec in MODEL_CATALOG.items():
+                print(f"  - {k:8s}: {spec['label']} (~{spec['gguf_size_mb']} MB) -> {spec['description']}")
+            picked = input(f"Choose tier [nano/small/standard] (default {rec_tier}): ").strip().lower()
+            if picked in MODEL_CATALOG:
+                tier_to_get = picked
+
+        current_folder = cfg.get("models_dir", "models")
+        custom_folder = input(
+            f"Folder to store downloaded models (default '{current_folder}'): "
+        ).strip() or current_folder
+
+        default_dl_backend = "gguf"
+        dl_backend = (
+            input(f"Download method [gguf/ollama] (default {default_dl_backend}): ").strip().lower()
+            or default_dl_backend
+        )
+        res = download_model(target=tier_to_get, backend=dl_backend, models_dir=custom_folder)
+        print(f"\nConfiguration updated and saved to {_meta_path()}:")
+        print(json.dumps(res, indent=2))
+        if res["backend"] == "gguf" and not hw["llama_cpp_installed"]:
+            print(
+                "\nNote: To run standalone .gguf files without Ollama, install rag requirements:\n"
+                "      pip install -r rag/requirements.txt"
+            )
+        return
+
+    if choice == "3":
+        backend = input("Backend [gguf/auto/ollama/openai/off] (default gguf): ").strip().lower() or "gguf"
+        tier = input(f"Tier [auto/nano/small/standard/off] (default {hw['recommended_tier']}): ").strip().lower() or hw["recommended_tier"]
+        pref = input("Preferred model name or GGUF filename (leave blank for auto): ").strip()
+        current_folder = cfg.get("models_dir", "models")
+        folder = input(f"Models folder path (default '{current_folder}'): ").strip() or current_folder
+        save_llm_config(backend=backend, tier=tier, preferred_model=pref, models_dir=folder)
+        print(f"Configuration saved to {_meta_path()}.")
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Astro-Health Companion RAG & Local LLM Configuration Utility"
+    )
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="Check PC hardware capabilities, installed models, and active RAG LLM settings.",
+    )
+    parser.add_argument(
+        "--configure",
+        action="store_true",
+        help="Run the interactive configuration and model download wizard.",
+    )
+    parser.add_argument(
+        "--download",
+        metavar="TIER_OR_URL",
+        help="Download a model for this PC: auto, nano, small, standard, or a direct .gguf URL / Ollama tag.",
+    )
+    parser.add_argument(
+        "--models-dir",
+        metavar="FOLDER_PATH",
+        default=None,
+        help="Configure the folder where .gguf models are downloaded and loaded from (relative or absolute path).",
+    )
+    parser.add_argument(
+        "--backend",
+        choices=["auto", "ollama", "gguf", "openai", "off"],
+        default=None,
+        help="Set or use a specific LLM backend (auto, ollama, gguf, openai, off).",
+    )
+    parser.add_argument(
+        "--set-tier",
+        choices=["auto", "nano", "small", "standard", "off"],
+        default=None,
+        help="Set the active model capability tier in rag/index/meta.json.",
+    )
+    parser.add_argument(
+        "--set-model",
+        metavar="MODEL_NAME",
+        default=None,
+        help="Set a specific Ollama model tag or GGUF filename inside the models folder.",
+    )
+    parser.add_argument(
+        "--question",
+        metavar="TEXT",
+        default=None,
+        help="Run a test question through ask() and print the JSON result.",
+    )
+
+    args = parser.parse_args(argv)
+
+    if args.configure:
+        _interactive_configure()
+        return 0
+
+    if args.download:
+        res = download_model(
+            target=args.download,
+            backend=args.backend or "gguf",
+            models_dir=args.models_dir,
+        )
+        print(json.dumps(res, indent=2))
+        return 0
+
+    if args.backend or args.set_tier or args.set_model is not None or args.models_dir:
+        updated = save_llm_config(
+            backend=args.backend,
+            tier=args.set_tier,
+            preferred_model=args.set_model,
+            models_dir=args.models_dir,
+        )
+        print("Updated rag/index/meta.json:")
+        print(json.dumps(updated.get("llm_config"), indent=2))
+        return 0
+
+    if args.question:
+        result = ask(args.question)
+        print(json.dumps(result, indent=2))
+        return 0
+
+    # Default or --check: save current hardware snapshot and print report
+    save_llm_config()
+    _print_status_report()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

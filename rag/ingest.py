@@ -16,7 +16,7 @@ import json
 import os
 from pathlib import Path
 
-from rag.ask import DEFAULT_CORPUS
+from rag.ask import DEFAULT_CORPUS, DEFAULT_LLM_CONFIG, detect_hardware
 
 
 def build_index(sources_dir: Path | None = None, index_dir: Path | None = None) -> dict:
@@ -63,12 +63,33 @@ def build_index(sources_dir: Path | None = None, index_dir: Path | None = None) 
         json.dumps(corpus, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
+    existing_llm_config = dict(DEFAULT_LLM_CONFIG)
+    meta_json_path = index_dir / "meta.json"
+    if meta_json_path.is_file():
+        try:
+            old_meta = json.loads(meta_json_path.read_text(encoding="utf-8"))
+            if isinstance(old_meta.get("llm_config"), dict):
+                existing_llm_config.update(old_meta["llm_config"])
+        except Exception:
+            pass
+
+    hw = detect_hardware()
     meta_payload = {
         "documents_indexed": len(corpus),
         "sources_enriched_from_disk": enriched_count,
         "source_ids": [d["id"] for d in corpus],
+        "llm_config": existing_llm_config,
+        "hardware_detected": {
+            "os": hw["os"],
+            "cpu_cores": hw["cpu_cores"],
+            "ram_total_gb": hw["ram_total_gb"],
+            "ram_available_gb": hw["ram_available_gb"],
+            "gpu_name": hw["gpu_name"],
+            "vram_gb": hw["vram_gb"],
+            "recommended_tier": hw["recommended_tier"],
+        },
     }
-    (index_dir / "meta.json").write_text(
+    meta_json_path.write_text(
         json.dumps(meta_payload, indent=2) + "\n",
         encoding="utf-8",
     )
