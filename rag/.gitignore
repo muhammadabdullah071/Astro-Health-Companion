@@ -1,0 +1,6 @@
+# RAG .gitignore (Python). Paths are relative to rag/.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
