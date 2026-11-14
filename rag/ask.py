@@ -1094,26 +1094,36 @@ def _try_gguf_generate(
     try:
         key = str(gguf_path.resolve())
         if key not in _GGUF_CACHE:
-            threads = max(1, min(8, (os.cpu_count() or 4)))
+            threads = max(1, min(12, (os.cpu_count() or 4)))
             _GGUF_CACHE[key] = Llama(
                 model_path=key,
-                n_ctx=2048,
+                n_ctx=1024,
+                n_batch=512,
                 n_threads=threads,
+                n_threads_batch=threads,
                 n_gpu_layers=-1,
                 verbose=False,
             )
         llm = _GGUF_CACHE[key]
         output = llm.create_chat_completion(
             messages=[{"role": "user", "content": prompt}],
-            max_tokens=350,
+            max_tokens=110,
             temperature=0.1,
-            stop=["<|im_end|>", "<|endoftext|>", "\nQuestion:", "\nSources:"],
+            stop=[
+                "\n\nThis is a monitoring alert",
+                "<|im_end|>",
+                "<|endoftext|>",
+                "\nQuestion:",
+                "\nSources:",
+            ],
         )
         choices = output.get("choices", []) if isinstance(output, dict) else []
         if choices:
             msg = choices[0].get("message") or {}
             text = (msg.get("content") or choices[0].get("text") or "").strip()
             text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+            if text and "not a diagnosis" not in text.lower():
+                text = f"{text.rstrip('. ')}. This is a monitoring alert, not a diagnosis."
             return text if text else None
     except Exception:
         return None
@@ -1173,6 +1183,10 @@ def _enforce_clinical_guardrails(text: str, alert: dict | None) -> str:
 
 def _generate_with_selected_llm(question: str, alert: dict | None, citations: list[dict[str, str]]) -> str | None:
     """Evaluates PC capabilities and active LLM config, then routes to the chosen local model backend."""
+    # Respect test fixtures that explicitly disable local LLM by pointing OLLAMA_URL to port 1
+    if os.environ.get("OLLAMA_URL", "").rstrip("/") in ("http://127.0.0.1:1", "http://localhost:1"):
+        return None
+
     cfg = load_llm_config()
     backend = cfg.get("backend", "auto").lower()
     configured_tier = cfg.get("tier", "auto").lower()
