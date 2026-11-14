@@ -22,6 +22,33 @@ All 9 sources from Section 5 of Ammara's deliverables pack are indexed with stab
 | **S8** | Narici L, Baiocco G, Cenci G, et al. *Radiation risk mitigation in human space exploration: a primer, a vision, and the state of the art.* Eur Phys J Plus. 2026;141:100. | [doi:10.1140/epjp/s13360-025-07199-8](https://doi.org/10.1140/epjp/s13360-025-07199-8) | Radiation context | **Hybrid Open Access (`CC-BY 4.0`)** — Full text & abstract verified |
 | **S9** | Roberts BM, Deane CS, Szewczyk NJ, et al. *Musculoskeletal responses to spaceflight: mechanisms, countermeasures, and key gaps.* Am J Physiol Cell Physiol. 2025;329(6):C1985-C1993. | [doi:10.1152/ajpcell.00649.2025](https://doi.org/10.1152/ajpcell.00649.2025) | Musculoskeletal context | **Hybrid Open Access (`CC-BY 4.0`)** — Abstract verified |
 
+### Downloading & Refreshing the Scientific Papers (`rag/download_sources.py`)
+
+All downloaded paper files live in `rag/sources/` and can be re-downloaded or refreshed at any time from official APIs (Europe PMC, NCBI PubMed / PMC JATS XML & BioC, OpenAlex, and Crossref) using Python's standard library only (zero extra `pip` packages needed).
+
+Run from the repository root (`Astro-Health-Companion/`):
+
+```bash
+# 1. Download all 9 abstracts (S1-S9), Open-Access PMC full texts, and license metadata into rag/sources/
+python -m rag.download_sources
+
+# 2. Also download available Open-Access PDF files (gitignored via *.pdf)
+python -m rag.download_sources --pdf
+
+# 3. Download sources AND rebuild rag/index/corpus.json + rag/index/meta.json in a single step
+python -m rag.ingest --download
+python -m rag.ingest --download --pdf
+
+# 4. Save downloaded papers into a custom folder (optional)
+python -m rag.download_sources --dir path/to/custom_sources
+```
+
+**Files generated inside `rag/sources/`:**
+- `S1_abstract.txt` – `S9_abstract.txt`: Verified abstracts with citation headers, DOIs, PMIDs/PMCIDs, and license tags.
+- `S2_PMC10896920.txt`, `S3_PMC10284846.txt`, `S5_PMC10810302.txt`, `S6_PMC11574097.txt`: Full-text open-access articles extracted from PubMed Central / Europe PMC.
+- `sources_metadata_and_licenses.json`: Complete machine-readable manifest of DOIs, PMIDs, PMCIDs, open-access status, licenses, rule mappings, and character counts.
+- `*.pdf` *(when `--pdf` is passed)*: Open-access PDF copies for local reading (ignored by Git via `.gitignore`).
+
 ---
 
 ## 2. PC Hardware Capability Detection & Model Selection
