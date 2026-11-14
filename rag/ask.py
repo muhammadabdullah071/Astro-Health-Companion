@@ -898,9 +898,16 @@ def download_model(
 # ---------------------------------------------------------------------------
 
 def _load_corpus() -> list[dict[str, Any]]:
-    """Loads custom corpus from RAG_INDEX_DIR/corpus.json if present, else DEFAULT_CORPUS."""
+    """Loads custom corpus from RAG_INDEX_DIR/corpus.json if present, auto-building from rag/sources if needed."""
     index_dir = Path(os.environ.get("RAG_INDEX_DIR", REPO_ROOT / "rag" / "index"))
     corpus_file = index_dir / "corpus.json"
+    if not corpus_file.is_file() and (REPO_ROOT / "rag" / "sources").is_dir():
+        try:
+            from rag.ingest import build_index
+
+            build_index(sources_dir=REPO_ROOT / "rag" / "sources", index_dir=index_dir)
+        except Exception:
+            pass
     if corpus_file.is_file():
         try:
             data = json.loads(corpus_file.read_text(encoding="utf-8"))
@@ -965,7 +972,10 @@ def _retrieve(
     for doc in corpus:
         score = 0.0
         doc_keywords = {k.lower() for k in doc.get("keywords", [])}
-        doc_text_tokens = _tokenize(f"{doc.get('title', '')} {doc.get('excerpt', '')}") | doc_keywords
+        doc_text_tokens = (
+            _tokenize(f"{doc.get('title', '')} {doc.get('excerpt', '')} {doc.get('abstract', '')}")
+            | doc_keywords
+        )
 
         if alert is not None:
             if alert_rule and alert_rule in doc.get("rules", []):

@@ -1,0 +1,488 @@
+Source ID: S6 (Open-Access Full Text)
+Title: Challenges for the human immune system after leaving Earth
+Authors: Marchal S, Choukér A, Bereiter-Hahn J, et al.
+Journal: npj Microgravity. 2024;10:106
+DOI: https://doi.org/10.1038/s41526-024-00446-9
+PMID: 39557881 | PMCID: PMC11574097
+License: cc-by-4.0
+========================================================================
+
+Challenges for the human immune system after leaving Earth
+
+From the start of life on Earth, several immune defense mechanisms have evolved to guarantee cellular integrity, homeostasis, and host survival. All these sophisticated balances as shaped by and towards the environmental needs have occurred over hundreds of millions of years. Human spaceflight involves various health hazards, such as higher levels of radiation, altered gravity, isolation and confinement, living in tight quarters, and stress associated with being away from home. A growing body of evidence points towards immunological changes in astronauts, including heightened pro-inflammatory responses, reactivation of latent viruses, and cell-mediated alterations, reflecting a dysbalanced state in astronauts. Simultaneously, enhanced pathogenicity, virulence, and drug resistance properties of microorganisms tip the scale out of favor for prolonged stay in space. As we have learned from the past, we see potential for the human immune system, forged and maintained throughout evolutionary history, to adapt to the space exposome. It is unlikely that this will happen in the short time frames set for current space exploration missions. Instead, major risks to astronaut health need to be addressed first, before humans can safely evolve into the space environment.
+
+Introduction
+
+The immune system of animals on Earth has evolved over a period of one billion years.
+
+New developments are listed in the white boxes, new challenges are written in italics. The occurrence of important components of the human immune system is shown below the development history. Innate immunity is the oldest form of defense and occurs to some degree in all species and comprises of physical barriers, chemical products and components (e.g., acids, enzymes, peptides), and immune cells. The adaptive immunity (humoral compounds, B and T cells) emerged around 600-450 million years ago in vertebrates. Abbreviations: GALT gut-associated lymphoid tissue, Ig immunoglobulin, MHC major histocompatibility complex, NK natural killer (cell).
+
+Since the appearance of the first eukaryotic cells at least 2.7 billion years ago, several defense mechanisms have evolved to ensure cellular integrity, homeostasis, and host survival (Fig. 1). It has become textbook knowledge that the human immune defense operates through two vital, interconnected avenues: the innate immunity and adaptive immunity. The roots of innate immune mechanisms trace back almost to the dawn of life itself, evolving alongside single-celled organisms over billions of years.
+
+Host response to invading pathogens has become a basic physiological response of all living organisms. Even unicellular invertebrates possess cellular receptors that bind to foreign elements and distinguish the self from the foreign. As life diversified into multicellular organisms, the complexity of both organisms and pathogens increased, prompting a diverse array of innate defense mechanisms. In multicellular invertebrates, this ability is associated with the presence of specialized phagocytes. These cells have a macrophage-like appearance and a similar function, which is prominent even at the earliest evolutionary stage. Well-conserved pathogen recognition receptors (such as Scavenger receptors, Toll-like receptors, or Nod-like receptors) on the cell surface recognize typical molecular patterns expressed by various pathogens (e.g., bacteria, viruses, fungi, protozoa, helminths) through receptor-ligand binding and initiate a complex cascade of cellular reactions which lead to the production of effector molecules. Cytokines, even in lower invertebrates, are involved in this orchestration of responses that can ultimately lead to the elimination or inactivation of the invader. While insects such as Drosophila rely on the innate immune system, spiders and crabs have an alternative complement pathway. Echinoderms show numerous variants of innate recognition and effector molecules that enable rapid and innate responses to various pathogens despite their lack of adaptive responses (Fig. 1). The high specificity, maturation of antibodies, immunological memory, and secondary responses of adaptive immunity were so successful that higher vertebrates were able to reduce the variants of innate molecules originating from invertebrates and lower vertebrates. Nevertheless, vertebrates link the two arms in an intricate, interdependent network.
+
+To survive, organisms at all evolutionary stages have used available genes and functions, some of which have been lost or have changed function during time. The molecular mechanisms involved in the evolution of immune molecules can be as diverse as gene duplication, deletions, alternative splicing, gene combination, domain displacement, retrotransposition, and gene conversion, in addition to simple base substitutions. Variable regulation of gene expression may also have played a role. However, the evolution of immunity is not limited to the temporo-spatial evolution of entire biocenoses; variations in pathogens and individuals over the lifetime of a host species or changes in the frequency of lymphocyte clones within an individual during a single infection also contribute to adaption. In general, all living systems have the capacity of perceiving their environments and to hereby increase survivability momentarily and over many generation cycles. But does that work when we are more “suddenly”—in the scale of our planet’s history—leave our habitat Earth, where we have co-evolved for thousands of years?
+
+It is now known that the interaction of cells changes significantly under the conditions of spaceflight, affecting differentiation, the mutual influence of tissues during differentiation, and also immune responses, the first steps of which consist of cell-cell interactions (host response). Based on these very general responses to an evolutionarily ubiquitous situation, it can be assumed that the immune system is affected under the unique conditions of spaceflight. This review aims to combine our knowledge of our immune system’s adaptability and the effects of the space environment on astronauts’ immune systems to predict how our immunity might change after leaving Earth and what challenges, threats, but also opportunities might arise.
+
+The human immune system in space
+
+The human immune system consists of two branches and many components. The innate immune system builds up the “first line of defense”, consisting of elements such as mechanical barriers (skin and mucous layer), followed by neutrophils, macrophages, monocytes, acute phase proteins, cytokines, and the complement system on the cellular and molecular level. A fundamental characteristic of the adaptive immune system is the ability to distinguish what is “self” and what is “non-self”. Missing foreign pathogens may lead to infection, missing mutated own cells may lead to tumor formation, but over-aggression of the immune system aimed at its own organism may lead to autoimmune diseases. Careful balance of this system is vital for the avoidance of being overwhelmed by infection, counteract tumor formation, but on the other hand not to attack the self. The unique conditions of the space exposome (Box 1), as they had never been experienced before during evolution, present a great challenge to keep this sophisticated scale balanced.
+
+A few years ago, the “exposome” was proposed as a new paradigm encompassing the totality of environmental (non-genetic) influences on the human body that complement the genome. The main health risks of spaceflight include higher levels of harmful radiation, altered gravity, long periods of isolation and confinement, a closed and potentially hostile living environment, and the stress associated with being away from home (communication delays, autonomous medical care, etc.). However, secondary effects such as reduced exercise leading to microgravity-related movement problems, unbalanced nutrient intake due to reduced food diversity, and potential impairment of the sense of taste, as well as disruption of the circadian clock, also contribute to astronaut health issues. Crewmembers do not experience these stressors independently, so it is important to also consider their combined effects on human physiology and performance. This “space exposome” (Fig. 2a), in conjunction with individual genetics, can determine the effects of spaceflight on the human immune system.
+
+Inflammatory response
+
+Influence of space travel on the human body.
+
+a The “space exposome”: environmental factors in space can have a direct or indirect effect (secondary exposome effects) on the health of astronauts. b Immunological changes in astronauts before, during, and after a space mission. The black circles mark a snapshot of the presumed cortisone level. Abbreviations: AEA blood anandamide, CMV cytomegalovirus, EBV Epstein-Barr virus, HSV herpes simplex virus, IL interleukin, NK natural killer (cell), TGF transforming growth factor, TNF tumor necrosis factor, VZV varicella zoster virus.
+
+Spaceflight-associated immune dysfunction has long been recognized by medical professionals. Today, a growing body of evidence points towards an increased inflammatory state in astronauts observed both during spaceflight and on return to Earth (RTE) (Fig. 2b). Key inflammatory cytokines released during early immune responses to infections are TNF, IL-1, and IL-6. These cytokines are critical for initiating cell recruitment and local inflammation, essential in the clearance of many pathogens. Increased plasma concentrations of TNF, IL-1α, and IL-1β have been observed in astronauts who have flown in space. Immediately on RTE, astronauts showed a significant spike in IL-6 plasma concentrations, together with other pro-inflammatory cytokines (IL-10, CRP, MCP-1, IL-27), myokines (IL-4, IL-5, IL-7) and chemokines (interferon gamma-induced protein 10, ENA-78, fractalkine) (Fig. 2b). Kim et al. recently hypothesized the source of these immune makers to originate from the muscle and other tissues during exercise, indicating a physiological response to microgravity rather than a solely inflammatory response. Simultaneously, high inflight levels of regulatory cytokines IL-10, IL-1 receptor antagonist protein (IL-1RN), and transforming growth factor β (TGF-β) dropped on RTE, suggesting a pro-inflammatory immune status with a concomitant reduction in the anti-inflammatory capacity. In line with these findings, a one-year space mission revealed increased levels of lysophospholipids containing pro-inflammatory omega-6 20:4 fatty acid, together with a decrease in lysophospholipids containing anti-inflammatory omega-3 20:5 fatty acid. The ability of host defense to rapidly identify and eradicate foreign microbes and activate pro-inflammatory pathways relies heavily on antimicrobial proteins (AMPs) to amplify protection through biochemical mechanisms. Findings demonstrated elevated levels of AMPs, such as salivary IgA (sIgA), lysozyme, and LL-37 during spaceflight.
+
+Stress response
+
+Life in space is characterized by unique, but stressful conditions (see “space exposome”, Box 1). Psychological stress has been linked to various immunological processes, including inflammatory processes, wound healing, responses to infectious agents, vaccination effects, and pathogenesis (autoimmunity, cancer). Spaceflight-associated stressors could chronically amplify the release of stress hormones, which in turn could negatively affect the human immune system (Fig. 2b). Interestingly, the classical stress hormones (cortisol and catecholamines) evaluated during spaceflight did not significantly differ between daytime- and mission time points. A rise in salivary and urinary cortisol was observed in the early inflight phase and upon landing but returned to baseline values across the 6-month mission duration and within 30 days after landing. Interestingly, non-classical markers such as plasma anandamide (AEA) were increased during flight compared to control subjects, reflecting a general activation of stress response systems. On a cellular level, altered gravity (microgravity) and radiation cause metabolic stress. Consequently, production and accumulation of excessive reactive oxygen species (ROS) cause oxidative stress that can harm lipids, proteins, carbohydrates, and DNA across all organ systems. ROS have various functional roles in immunological signaling. They are key players in the migration and activation of polymorphonuclear leukocytes to the site of injury. Impaired ROS production hinders phagocytic function of neutrophils and macrophages. In the adaptive immune system, ROS plays a critical role in T cell signaling and T cell activation. Astronauts in space have shown a dysregulation of CD8+ T cell infiltration in ganglions, permitting the reactivation and/or shedding of latent viruses. Immunological changes in astronauts are evidenced by the reactivation of latent human herpes viruses (HHV). Latent virus reactivations have been observed in astronauts during both short-duration shuttle flights (10–16 days) and long-duration ISS flights (≥180 days). Following reactivation, viruses are shed in the body fluids of astronauts, such as saliva, plasma, and urine. Around 60% (14 out of 23) of all astronauts from long-duration ISS missions shed at least one or more HHV in their saliva or urine. Epstein-Barr virus (EBV) and varicella zoster virus (VZV) were detected in the saliva of approximately 65% and 96% of all astronauts, respectively. Cytomegalovirus (CMV) was detected in the urine of approximately 61% of all astronauts. Magnitude and frequency of viral shedding increased with mission duration. Interestingly, higher concentrations of salivary cortisol levels were observed in astronauts who shed a latent herpes virus compared to those who did not shed. Spielmann demonstrated elevated levels of plasma AMPs (lysozyme and human neutrophil peptide, HNP1-3) in astronauts who exhibited EBV and VZV reactivations during flight. Plasma concentrations of LL-37 decreased upon return to Earth and were associated with greater CMV reactivation. A single case study reported persistent dermatitis (herpes simplex virus 1, HSV-1) during flight, demonstrating elevated stress markers, circulating inflammatory cytokines, and HSV-1 DNA levels in saliva and lesion swab. These findings suggest a role for stress in the reactivation of viral infections during spaceflight.
+
+Cell-mediated immunity
+
+Cell-mediated immunity relies on lymphoid homeostasis, important for the regulation of immune responses (Fig. 2b). Both spaceflight and ground-based experiments have shown inhibition of macrophage differentiation from mouse hematopoietic stem cells. Differentiation and maturation of lymphocytes from the bone marrow may be influenced by the effect of weightlessness on the human skeletal system. Astronauts’ skeletal health (bone mineral density) declines with a rate of 0.5–1.5% per month spent in space. Some level of overlap has been observed between astronauts’ immune systems and participants exposed to prolonged bed rest, a common analog for human microgravity studies on Earth. EBV reactivations were observed in subjects exposed to a 60-day bed rest study, suggesting an immunocompromised state. Inflammatory cytokines, including IL-1, IL-6, and TNF, were found to have a significant effect on the bone remodeling process, mostly driving the system in the direction of resorption.
+
+Peripheral leukocyte distribution varies between inflight and post-flight measurements. Relative to preflight values, the total number of leukocytes, granulocytes, and natural killer (NK) cells increased during spaceflight. Levels of lymphocytes, monocytes, lymphocyte subsets (B and T cells), and T cell subsets (CD4+ and CD8+) were unaltered. On RTE, the total number of leukocytes remained elevated compared to preflight values. Neutrophil and monocyte count increased by 50%, shortly after landing. On the other hand, NK cell count decreased upon RTE. One study even reported a 60% drop in NK cells shortly after landing. B cell homeostasis was maintained during long-duration spaceflight, however, few studies have shown increased levels of B cells on RTE. Findings on immune responses immediately after spaceflight may be confounded by the high-g reentry and stressors related to re-adaptation to terrestrial gravity following prolonged spaceflight missions.
+
+Following short-duration spaceflight missions (5-11 days), monocytes displayed a reduced ability to engulf E. coli, elicited an oxidative burst, and degranulated. Phagocytosis and oxidative burst capacities in neutrophils were significantly lower post-flight after a 9-11-day mission but not after a 5-day mission. Lipopolysaccharide stimulation of astronauts’ monocytes produced reduced amounts of pro-inflammatory cytokines IL-6 and IL-1β and higher amounts of anti-inflammatory cytokine IL-1RN compared to controls. Findings suggest that monocyte and neutrophil function may be affected by factors associated with spaceflight, shown by a reduced responsiveness of host defense cells against invading pathogens. NK cell cytotoxic activation against K562 leukemia targets was reduced by 50% in astronauts during spaceflight compared to ground controls. Exposure to microgravity conditions increased their apoptotic and necrotic activity concomitantly with delayed hypersensitivity responses. B cell homeostasis was supported by unchanged plasma levels of immunoglobulin-free light chains, IgG, and IgM, during long-duration spaceflight. All except for IgA levels, that increased during spaceflight. Consistently with animal models, spaceflight did not affect the immunoglobulin repertoires of mice after short-duration spaceflight. Cell number and cell function determine immunological responses first and foremost. The current findings demonstrate important alterations in cell function, taken together with reactivation of latent viruses, suggesting an overall compromised immune response.
+
+Immune adaptations to human spaceflight
+
+Astronauts re-exposed to the space environment have shown reduced immunological adaptations. Experienced astronauts had lower levels of AMPs (α-amylase, lysozyme, and LL-37) in their saliva and higher concentrations of sIgA compared to rookie astronauts, observed during and after spaceflight. The decline in NK cell function, as described earlier, was more pronounced in rookie astronauts compared to their experienced counterparts. Immune adaptation to the space environment is necessary for organisms’ safe travel away from Earth. These results show the immune’s capacity to learn from a previous exposure to the spaceflight environment. More re-exposure studies are required to examine the extent of immune adaptation and immunological memory in response to various space conditions.
+
+Life and oxygen in space
+
+Whilst long-duration space missions induce complex orchestrated and multidirectional immune affecting stress responses as described, the life conditions in future extreme long-duration missions or on planetary colonies are of special interest. Lowering the partial pressure of oxygen in the spaceship on a long interplanetary journey or on-site in the habitat is likely to be equivalent or lower to an oxygen concentration of 19%. Oxygen content may be even lower as for technical reasons, fire hazards or to reduce radiation effects aggravated by oxygen. The effects of lowered oxygen availability on the human immune system can be significant. As paralleling the evolution of the immune system, life has become an “oxygenated” life from the Cambrian explosion onwards and evolved over several millions of years in a dynamic state of increasing oxygen tension to an Earth's atmosphere as of today. Interestingly the mitochondrial genome in eukaryotes retains similarity to its prokaryotic ancestor. Mitochondrial genes that have been conserved across the evolution include ribosomal (rRNA) and transfer RNA (tRNA) genes and a small number of genes that are related to the encoding of proteins involved in electron transport and ATP synthesis (i.e., the ATP synthase to synthesize ATP from ADP). The breakdown of ATP stands as the primary step for metabolic energy, also in eukaryotic cells, and is related to oxygen availability. This applies also within cells, as localized regions might encounter ATP scarcity due to increased local consumption or reduced ATP production during periods of hypoxia.
+
+Because ATP is not only a key mitochondrial metabolite and “currency” of energy but also a signal transmitter in the purinergic signaling, it plays a pivotal role in regulating diverse cellular processes such as tissue oxygen tension and mitochondrial action. For instance, when various mammalian cell types are stimulated, they release ATP and through several families of ectonucleotidases its degradation products. The ATP and the derived ligands can bind to various receptors and induce auto- and paracrine feedback. In the last three decades, 19 distinct receptor subtypes of purinergic receptors were characterized capable of recognizing these ligands (eight P2Y subtypes, seven P2X subtypes, and four P1 (adenosine A1, A2A, A2B, and A3)). Depending on the ligand and receptor affinity and G-protein coupling, binding to the purinergic receptors can either enhance or inhibit the activation of immune cells. These processes do happen in parallel to enable balanced responses. Experimental and human research has shown that reduction of the oxygen tension can affect these pathways and affect ATP metabolism triggering purine-mediated immune modulation. These effects are not only a function of the reduction of the oxygen tension but also a function of time of exposition since initial immune modulatory effects can be changed over time. Humans overwintering in the high-altitude Antarctic environment (Concordia Station, Dome C) characterized for its hypoxic conditions, observed a dynamic immune activation and a two-step escalation/activation pattern.
+
+The early phase was characterized by moderately sensitized global immune responses, while after several months, immune responses were highly upregulated. The cytokine responses to an ex vivo stimulation were markedly raised. The parallel quantitative polymerase chain reaction analyses from blood revealed that key elements of the purinergic system were significantly altered and dysregulated, indicating to some extent an adaptive process of disinhibition of purinergic signaling. The dysregulation of the immune system seen during overwintering corresponded to the decreased expression of B and T lymphocyte attenuators (BTLA). Several studies demonstrated its critical role in up-regulation of inflammation and one of the first reports on BTLA expression in humans suffering from Behcet’s disease (auto-inflammatory vasculitis) to be associated with a diminished expression of BTLA. The signaling lymphocytic activation molecule family 1 receptor (SLAMF‐1) was increased at the early phase of the Antarctic deployment and remained elevated. This receptor is considered to be related to the control of humoral autoimmunity, primarily via CD4+ T cells. As such, alterations of SLAMF-1 and BTLA expression are significantly involved in hypersensitivity diseases and might be related to the increased incidence of clinically relevant hypersensitivity reactions, either allergic or autoimmune when exposed to such extreme conditions. Moreover, the separate and combined effects of hypoxia and (simulated) reduced gravity may further modulate these deconditioning of vital physiological systems by additive increase of purines in humans.
+
+Space environment and microbes
+
+Pathogenicity and virulence
+
+Friend or enemy?—Challenges for the human immune system due to bacteria in space.
+
+a The space environment influences both the biology of pathogens (the left part summarizes already described observations on pathogenic microorganisms), from which the immune system must protect astronauts, and the commensal bacterial flora of the body (right part). The human microbiome has to cope with the changed conditions in space (radiation, altered gravity, food supply, mental challenges), the effects of which have not yet been clarified in detail (b) Host-pathogen-associated cytokine profiles. c Rate of evolution for varying species: microorganisms and humans. (Abbreviations: IFN interferon, IL interleukin, LPS lipopolysaccharide, NK natural killer (cell), TNF tumor necrosis factor.
+
+The ISS harbors a variety of microorganisms, including contaminants from Earth, components of experiments and the normal microbiota of crewmembers. Space modules provide exceptional conditions for Earth’s microbes to grow and spread due to high radiation doses, microgravity and enclosed, compact environments (i.e., controlled humidity, controlled temperature, O2/CO2 ratio and long exposure time). The human body’s microbiome is prone to external forces, including the ISS microbiome, as they are in constant exchange and interaction. The ISS microbiome is dominated by human-associated microbes, with Streptococcus, Corynebacterium, Lactobacillus, Acinetobacter, and Staphylococcus as dominant taxa. Microbiome composition aboard the ISS changes over time, shown by an increase in microbial diversity after two cargo deliveries. The space environment induces key changes in microbial cells that are directly relevant to infectious disease (Fig. 3a). This includes alterations of microbial growth rates, antibiotic resistance, microbial invasion of host tissue, organism virulence (the microbes’ ability to cause disease) and genetic changes within the microbe. For instance, S. Typhimurium and E. coli displayed increased growth and culture densities during spaceflight. Both S. aureus and E. coli showed increased resistance to antibiotics. Genetic changes include alterations in gene expression patterns and genetic transfer. Other observations include biofilm formation in Pseudomonas aeruginosa, morphology changes such as thickening of the cell wall of S. aureus, and greater cell size of Proteus vulgaris. Animal models display shorter survival times compared to controls when infected with Serratia marcescens in fruit flies and A. fumigatus in larval zebrafish. Ground control experiments demonstrated an increased virulence of S. Typhimurium in a murine model. S. Typhimurium and E. coli showed enhanced resistance against all kinds of stress (acid-, thermal-, and osmotic stress) under simulated microgravity conditions. Microbial presence in biofilms shows more resistance to antibiotics and other stressors. These microbial characteristics are of importance to astronaut health and the integrity of the spacecraft. Adaptation of terrestrial pathogens to “alien” environments could lead to modified microorganisms with different pathogenic potential. It is unknown how the human immune system might react to these modifications due to different metabolic and cellular structures. Immune recognition might fail or in contrast, overreact to these “alien” microbes.
+
+Commensal bacteria
+
+The human gut microbiome can affect immunological responses and thus impact the general health of astronauts during spaceflight. During both short- and long-duration spaceflight missions, changes in the gut-, nasal- and oral bacterial profiles of astronauts have been observed. Historical findings reported an increased microbial count with reduced microbial diversity in astronauts’ stool samples. The 1-year twin study showed decreased metabolites in the gut microbiome in space, such as 3-indole propionic acid, which has anti-inflammatory effects. The authors propose these changes are due to nutritional restraints related to spaceflight. Changes in microbial metabolites, diversity loss, and interference in energy metabolisms are three recognized microbial disturbances that may adversely impact human health. There is robust evidence that a limited gut microbial diversity leads to a higher prevalence of chronic inflammatory conditions such as inflammatory bowel disease or obesity.
+
+The microbiota from nine astronauts who spent a year on the ISS showed a space-induced decrease in the population of three bacterial genera with anti-inflammatory properties: intestinal Fusicatenibacter, Pseudobutyvibrio, and Akkermansia. Interestingly, an abundance of Bacteroides with a decrease in Lactobacillus and Bifidobacterium was observed after short-duration spaceflight missions. Bacteroides reproduce rapidly under stressful conditions and increase subsequently with a weakening of the immune system. The Lactobacillus and Bifidobacterium species may interfere with the functioning of the human immune system and gut microbiota, causing latent viral reactivations and increasing the number opportunistic pathogens in the gut. Non-Western microbiomes consist of greater bacterial diversity compared to Western microbiomes. The differences between populations could point to cultural and environmental factors. Diets with higher levels of fibers and lower amounts of sugar, fat, and meat, typical for non-Western diets, promote bacterial richness in the gut. It is likely that other environmental factors, other than nutritional restraints, have an impact on the gut microbiome (Fig. 3a). Earth examples have shown that the effects of antibiotics on the bacterial communities result in biodiversity loss and compositional imbalance. Reduced contact with “old friends” (bacteria and parasites common in the natural environment) increases the risk of developing asthma, allergies, or other hypersensitivity diseases.
+
+Similarly, the human skin microbiome is likely to show adaptations to the space environment. A 6-month mission to the ISS showed reduced diversity of the skin microbiome, observed in 10 astronauts. An increased colonization by Malassezia, a lipophilic skin fungus, was observed compared to preflight samples. Similar observations were made in an astronaut during a 1-year stay on the ISS. The authors associated the microbiome of an astronaut to those of patients with seborrheic dermatitis, a condition sensitive to stress and immunosuppression.
+
+Furthermore, host-pathogen interaction during spaceflight and associated cytokine profiles would provide valuable information regarding immune response effectiveness (Fig. 3b). Human intestinal epithelial cells, exposed to an infection with Salmonella Typhimurium showed a heightened pro-inflammatory response compared to uninfected cells and matching ground controls. Consistent with the inflammatory response was the amplified induction of genes encoding pro-inflammatory mediators and wound healing. Similar findings demonstrated an amplified response of TNF and IL-1β following fungal antigen stimulation and Aspergillus antigen stimulation of whole blood samples from returning astronauts. Mitogen-stimulated T cells produced reduced levels of IFN-γ, IL-10, IL-6, IL-5, and TNF, persistent during spaceflight. Lipopolysaccharide-stimulated T cells produced reduced levels of IL-10, but increased levels of the neutrophil chemoattractant factor IL-8 during flight. A recently published study shows how the stress of microgravity can have a negative impact on the innate immune response of animals living in a symbiotic relationship.
+
+Henry et al. proposed two pathways in which the microbiome may affect host evolutionary potential. The first pattern proposed that microbial variation may shift the mean phenotype of the population, while the second pattern proposed that microbial variation may change host phenotypic variance. Both patterns may occur together, creating a framework in which genetic variation in the microbiome can extend the genetic repertoire of the host genome, influence host heritability, and thus impact host phenotypic evolution.
+
+Vaccination
+
+Enhanced pathogenicity, virulence, and drug resistance properties of microorganisms in space could pose a significant risk to the health of crewmembers during long-duration missions. Current approaches aim to identify the components of organisms that facilitate increased virulence in space, and then apply this information in targets for anti-microbial therapeutics, including vaccines. Vaccines are an effective strategy for preventing viral diseases. Space-based platforms have led to a potential candidate vaccine for Salmonella and is currently in the early stages for review and development. Moreover, space research aims to improve on existing vaccines, such as Streptococcus pneumonia, a bacterium that causes life-threatening diseases like pneumonia, meningitis, and bacteremia. The 1-year twin study performed a vaccination response experiment to compare the effect of influenza immunization in the spaceflight environment with that on Earth. The immune system in space responded appropriately to the flu vaccine in all flight phases and compared to the ground control twin. There were no significant differences in the percentage of CD4+ and CD8+ T cell receptor sequences inflight compared to preflight and post-flight responses. Astronaut vaccination proves to be a promising method for reducing space-induced infectious diseases, however, extensive research is required to guide astronauts during longer stays in space and destinations farther away from Earth.
+
+Evolution
+
+An evolutionary perspective
+
+Survival of the fittest, a concept from the 19th century, describes how organisms that are best adjusted to their environment are more successful in survival and reproduction. Research in space life sciences mainly focuses on understanding the physiological and psychological response of the human body to the space environment. However, in an evolutionary context we must consider how these changes impact human health and consequently the safety and survival of astronauts, and which adaptations will be naturally selected by this extreme environment. Human adaptations to spaceflight are generally denoted as maladaptations as they deviate from responses shaped by natural selection in terrestrial environmental conditions (i.e., weakening of host defense mechanisms, muscle wasting, and bone resorption). However, these adaptations are physiological responses to a new, extreme environment that is fundamentally different from our terrestrial world (see Box 1). For example, it is known that skeletal health and physical activity strongly influence the human immune system on Earth. Microgravity induces osteoporotic processes, with a bone mineral density loss of 1–2% per month spend in space. This adaptation is fundamentally different when compared to low-weight-bearing athletes on Earth. Swimmers’ bone density and structure showed adaptations to changes in gravity. They presented lower bone mineral density compared to high-impact athletes and sedentary controls, but demonstrated a higher bone turnover compared to controls, resulting in a different structure that was more resistant to fracture indexes.
+
+Host-pathogen co-evolution
+
+The rate of evolution is typically defined as the number of generations needed for an initially random population to achieve a given goal. Natural evolution occurs in temporally and spatially varying environments, the more complex the changes, the more dramatic the speedup. The space environment therefore will evolve systems much faster. The host-pathogen relationship is an interesting example. Spaceflight is known to enhance microbial growth rates, antibiotic resistance, microbial invasion of host tissue, virulence, and genetic changes within the microbe. The human microbiome on the other hand demonstrated reduced diversity after spaceflight, which can weaken the immune system. These two intimately linked entities might be able to evolve in response to the space environment but might do so at two very different rates (Fig. 3c). On the evolutionary timescale, microbes tend to evolve faster due to shorter generation times and often stronger selection. The evolutionary arms race between predator and prey, illustrated by the ‘Red Queen’ metaphor often refers to host-pathogen co-evolution, wherein both pathogen and host need to constantly invent new infection and protection measures to survive. Experimental evidence already showed the survivability of several microorganisms such as bacteria and spores to the space environment. Maintaining a balanced host-microbiome relationship poses a major health challenge for astronauts.
+
+Small population size
+
+We must consider that the success or failure of a variation will not be known until after it emerges. As of February 2024, 681 people have reached the altitude of space according to the United States Air Force definition. Agent-based modeling was used to simulate small-scale communities (i.e., human settlement) on Mars, drawing on high-performance teams in isolated and high-stress environments (ex. submarines, Artic exploration, war). The goal was to determine a minimum initial population which was to maintain or bounce back quickly (within 1.5 years) to a stable colony size equal to or greater than 10 for all 28 years. An initial population size of 22 was the minimum required to maintain a viable colony size. In an evolutionary context, we deal with several small population size effects, including (1) genetic drift that describes random changes in gene frequencies, independent of mutation and natural selection, (2) the founder principle that describes high frequencies of a specific genetic trait from a common ancestor and, (3) the bottleneck effect that describes a dramatic reduction in genetic diversity of a species induced by catastrophic events. All these effects will be of importance for space evolution, highlighting the importance of genetic variability. Another important factor we must consider is the immune variability between healthy individuals. This immune heterogeneity as reflected in their immunotypes, is a poor predictor of immune responses.
+
+Spaceflight preparation
+
+Immune development
+
+Development of the human immune system throughout his lifespan on Earth.
+
+The strength of the immune system (both innate and adaptive) builds up in the first years of life. However, its ability to learn decreases from early adulthood, before immune senescence begins around the age around 65. The astronauts recruited so far were all middle-aged, when the immunological learning capacity was already lower. The window of opportunity is a period in which microbial factors have a strong impact on the development of immune responses.
+
+Newborns, in particular premature babies, have an impaired innate immunity, weak Th1 and antibody responses that make them more susceptible to bacterial and viral infections, resulting in high mortality rates observed in conditions of increased pathogen exposure. The immune system gradually matures during childhood (Fig. 4). Risks of infections slowly reduce due to vaccinations which stimulate protective immune responses. Children may still acquire bacterial, viral, and fungal infections that need to be fought off, adding to their immunological memory. Immunological memory persists into old age but may eventually fade. Over time, protection provided by immune responses increases, and young adults suffer fewer infections. During pregnancy, the mothers’ immune system undergoes several changes to undermine the rejection of the semi-allogeneic graft. These changes include local immune suppression at the site of implantation, mediated by NK cells, monocytes, and regulatory T (Treg) cells. T cell activation is suppressed, and a shift is observed from Th1 to Th2 cell responses. This immune modulation, however necessary for the well-being of the fetus, makes pregnant women more susceptible to severe complications of influenza and other infections. As age advances, the immune system undergoes profound remodeling. Age-related reshaping of naive T cell repertoire, with a reduction of naive CD8+ T subsets, and change of the T-cell phenotype towards differentiated memory T-cells, altogether leads to an age-related reduction of the T-cell pool. This leads to a lower vaccination efficiency, decreased immune surveillance and resistance to infectious diseases, increased onset of reactivation of latent viruses, auto-immune diseases, and cancer. For this reason, older adults (65 years and older) see a significant increase in the rate of morbidity and mortality. Rubelt et al. define the age of 50 and beyond as the onset of immune senescence observed through an age-dependent reduction of class switch recombination ability, likely underlying the reduced efficacy of vaccination.
+
+Early immune exposure
+
+Immune development knows a critical period, the so-called ‘window of opportunity’, that ranges from prenatal life to age six (school age; Fig. 4). The hygiene hypothesis, formulated by Strachan in the late 1980s, proposes the fundamental idea that early childhood exposure to appropriate levels of microorganisms protects against immune deviation and allergic diseases by strengthening the immune system. The timing of exposure to pathogens and the ensuing immune response is important for immune development. Strachan found an inverse correlation between hay fever and the number of older siblings. Critical environmental modulators of the young immune system are mode and season of delivery, infections and vaccinations. Ever since, various studies have linked the development of allergies and autoimmune diseases to limited childhood microbial exposure in more Western, industrialized countries. For instance, the ‘Alpine farm studies’ identified traditional farming characteristics such as the consumption of unprocessed farm milk and close contact with farm animals to be allergoprotective and associated with a higher microbial load. After the ‘fall of the Iron Curtain’ in 1989 between Western and Eastern Germany, a higher prevalence of allergies was observed in children from Western Germany, despite higher levels of pollution by industrial emissions in Eastern Germany, concluding that other exposures than pollutants influence the development of atopic diseases. Poor immuno-regulation causes chronic inflammatory diseases that are increasing in prevalence in urban communities in high-income countries. These studies highlight the crucial role of a diverse and rich immune-stimulating microbial environment in early life, in the establishment of a competent, tolerogenic, and defensive immune system, later in life. However, the functioning of a person’s immune system is adapted to their immediate environment. It is not possible to maintain the functionality of the immune system if the environment changes drastically. Most likely, future space travelers will have a completely different immune response (system) that is highly adapted to the space environment, unless they are otherwise challenged by a variety of antigens.
+
+Lifestyle improvements
+
+Spaceflight involves many lifestyle adaptations, such as changes in diet, reduced physical activity, and new sleeping habits that can disturb circadian rhythm. All these lifestyle adaptations indirectly affect the human immune function. Major physiological improvements in spaceflight-induced immune dysfunction seem to have initiated approximately 11 years ago, a period coinciding with improvements onboard the ISS. Findings report a reduction in previously reported plasma cytokine increases, improvements in T cell blastogenesis, improved mitogen-stimulated cytokine profiles, reduced salivary cortisol levels during flight, reduction in the reactivation of latent EBV and CMV, and a complete ablation in the reactivation of VZV. Authors associated these improvements with the evolution of the ISS as a vehicle (e.g., additional parts increased habitable volume), deployment, and evaluation of various biomedical countermeasures (e.g., dietary improvements, better exercise countermeasures, crew psychology support, frequent resupply, etc.). For instance, a study investigated the relation between physical activity pre-, in-, and postflight with latent viral reactivation. Crewmembers with high cardiorespiratory fitness (CRF) levels preflight had a 29% reduced risk of latent viral reactivation inflight. Latent viral reactivation rates were highest in crewmembers with low preflight CRF levels and high CRF-deconditioning levels on return to Earth. Higher preflight upper body muscular endurance had a 39% reduced risk of viral reactivation, longer time to viral reactivation, and lower peak viral DNA concentrations (EBV and VZV). Furthermore, adequate nutrition is essential for a functioning healthy immune system. Active areas of research focus on nutritional countermeasures such as supplements or probiotic microbes to prevent or mitigate infection. For instance, probiotics such as Lactobacillus casei strain Shirota showed improvements in innate immunity and increased the NK cell activity by enhancing IL-12 production by monocytes and macrophages. Probiotics derived from Akkermansia, a bacterium linked to host metabolism and immune response, may reduce the risk of chronic inflammatory diseases. Another study showed that Faecalibacterium prausnitzii has anti-inflammatory properties by increasing the production of IL-10 and TNF in the colon to improve intestinal disease. Finally, probiotics can produce short-chain fatty acids, which have a crucial part in the regulation of the immune system. Probiotics promoting short-chain fatty acid formation may boost nutritional and metabolic resources as well as lymphocytes’ capacity to eliminated viruses and potentially reduce latent viral reactivations.
+
+Adaption or countermeasures?
+
+The interplay between natural selection, culture, and technology will be important in the context of human evolution to space. For instance, will humans adapt to microgravity, colonize other planets, and as a result adapt to partial gravity conditions, or will artificial gravity preclude humans from having to adapt at all? To date, there are big gaps in the research regarding long-term immunological adaptation to the space environment and how will it adapt on such a small timescale. While there are serious grounds for concern, there have been very few medical emergencies in astronauts exposed to the relatively short-duration space missions. Future exploration missions will take astronauts away from Earth, bringing new challenges regarding autonomous healthcare and long-term exposure to the space environment. This sudden transition to space is hard to envision without failure to adapt. Movement away from Earth needs the accompaniment of countermeasures to secure safety and well-being of the astronauts and to possibly counteract unforeseen obstacles.
+
+Taking a closer look on possibilities to avoid such an adaptation, scientists have been exploring artificial gravity to keep astronauts operating in a normal Earth-like environment. Artificial gravity can be produced in a number of ways. Linear acceleration is achieved by accelerating the spacecraft continuously in a straight line. Objects inside will be forced in the opposite direction of that applied acceleration. Orbital adjustments, made routinely by the thrusters of a spacecraft, are an example of linear acceleration. The duration of this artificial gravity however is of short duration and therefore not feasible as a countermeasure for deep space exploration missions and human evolution into space. Centrifugal acceleration is achieved by rotating or spinning the aircraft around its own center of mass. For example, a given gravity level is generated as a function of angular velocity (rotation rate, rpm) and distance from the center of rotation (radius). Artificial gravity, although a “classical countermeasure” in the sense that it would stabilize dysregulated immune function, is far from being realized yet.
+
+A number of other potential immunological countermeasures for deep space exploration should be mentioned, those of which are within the immediate control of the astronauts.
+
+Nutritional countermeasures to reduce nutrient deficiencies or insufficiencies known to have profound effects on immune function. Hypocaloric nutrition, observed in earlier space missions, was associated with increased inflammation and oxidative stress. Various foods and supplements are proposed to maintain immune function on exploration missions, including protein- and/or amino acid-rich foods and/or supplements; food products with anti-oxidant functions (such as vitamin E) and diets rich in fruit and vegetables which contain micronutrients such as carotenoids, vitamin C and folate. Nutrient-rich diets might benefit, in accordance, the composition and expression of the gut microbiome, highlighting the importance of a symbiotic relationship between humans and their microbiome. Introduction of probiotic microbes to the space food might prove a potential countermeasure to immune dysregulation. Other countermeasures that are already in place and can benefit from optimizations include individualized exercise regimen, adequate sleep schedules, and psychological support—family communication.
+
+Because of the small sample size and small population size for astronauts who will travel into space, we cannot rely on community-based immunological countermeasures, such as herd immunity. For this reason, alternatives to herd immunity should be explored. Specific immunological countermeasures that are an active field of research at present include vaccinations, pharmacological interventions, and potential inflight monitoring of immune parameters.
+
+Conclusions
+
+The evolutionary potential of the human immune system in space deals with many (yet unknown) obstacles. Such challenges include different pathogenic potential in microorganisms, altered immune response, low genetic variability, and large immune variability due to small population sizes to name a few. Reflecting on the evolutionary journey of immunity to a future in outer space reveals a crucial insight: the intricate and multifaceted actions and interactions within innate and adaptive immunity stem from a rigorous and enduring process of selection and deselection as described. This ongoing process has progressively enhanced our ability to discern between self and non-self, enabling an effective defense against pathogens. To which degree gravity changes, radiation or a lowered oxygen is affecting remains open, especially since the immune system emerged from hypoxic states. Monitoring of immune functions will be critical in the future to value the effects of countermeasures as well as the effects of aggravations along the time of exposure to the space exposome.
+
+One hypothesis can be formulated based on current findings that may guide the evolution of the human immune system into space: Will the human immune system better adapt to the space environment when it is exposed at a younger age? Infancy is the most critical period for immune development, where environmental modulators play a key role in the fine tuning of the immune response. Returning astronauts showed improved NK cell function and lower levels of AMPs, demonstrating the immune’s ability to adapt upon re-exposure. Not surprisingly, similarities were observed between immune senescence – the decline of the immune system with age, and the astronaut’s immune response to space. These include a reduced ability to respond to antigens, low-grade inflammation, and reactivation of latent viruses. Research into the effects of microgravity on regenerative health, specifically immune senescence, is gaining momentum. Reducing the average age of astronauts flying to space, re-exposure studies, and spaceflight exposure during immune development might provide valuable insights for future space missions. The impact of complementary environmental factors such as confinement, habitat atmosphere, or pathogen compositions in enclosed environments together with radiation effects will certainly be of impact on the immune performance and to be included in such perspective.
+
+The human immune system emerged in response to environmental needs spanning over billions of years. The sudden jump from Earth to outer space and foreign planets is accompanied by many health hazards and immunological challenges. The immune’s adaptation in such short timescales can therefore not be without failure. The need for countermeasures (e.g., vaccinations, artificial gravity, and environmental decontamination) is ever so important in humankind’s journey away from Earth.
+
+Publisher’s note Springer Nature remains neutral with regard to jurisdictional claims in published maps and institutional affiliations.
+
+Author contributions
+
+Conceptualization, S.M. and M.K.; Investigation, S.M. and M.K.; Writing – Original Draft, S.M., M.K., and A.K., Writing—Review & Editing, S.M., M.K., A.C., J.B.-H., D.G., and A.K.; Visualization: M.K. and S.M.; Supervision: M.K.
+
+Funding
+
+Open Access funding enabled and organized by Projekt DEAL.
+
+Competing interests
+
+All authors declare no financial or non-financial competing interests. A.C. serves as Editorial Board Member of this journal and had no role in the peer-review or decision to publish this manuscript.
+
+References
+
+How did our complex immune system evolve?
+
+Innate and adaptive immune memory: an evolutionary continuum in the host’s response to pathogens
+
+Buchmann, K. Evolution of innate immunity: clues from invertebrates via fish to mammals. Front. Immunol.5, 10.3389/fimmu.2014.00459 (2014).
+
+The ancestry and cumulative evolution of immune reactions
+
+The characterization of sponge NLRs provides insight into the origin and evolution of this innate immune gene family in animals
+
+Cytokines, virokines and the evolution of immunity
+
+Evolution of γ chain cytokines: mechanisms, methods and applications
+
+Yu, S., Luo, F., Xu, Y., Zhang, Y. & Jin, L. H. Drosophila innate immunity involves multiple signaling pathways and coordinated communication between different tissues. Front. Immunol.13, 10.3389/fimmu.2022.905370 (2022).
+
+Complement-related proteins in crustacean immunity
+
+Smith, L. C. et al. in Advances in Comparative Immunology (ed Edwin L.C.) 409–501 (Springer International Publishing, 2018).
+
+Smith, N. C., Rise, M. L. & Christian, S. L. A Comparison of the innate and adaptive immune systems in cartilaginous fish, ray-finned fish, and lobe-finned fish. Front. Immunol.10, 10.3389/fimmu.2019.02292 (2019).
+
+The individual and combined effects of spaceflight radiation and microgravity on biologic systems and functional outcomes
+
+Microgravity and immune cells
+
+Evaluating the effect of spaceflight on the host–pathogen interaction between human intestinal epithelial cells and Salmonella Typhimurium
+
+An overview of the immune system
+
+Alberts, B. et al. Molecular Biology of the Cell (Garland Science, 2002).
+
+Comprehensive multi-omics analysis reveals mitochondrial stress as a central biological hub for spaceflight impact
+
+Endothelial dysfunction markers and immune response indices in cosmonauts’ blood after long-duration space flights
+
+Multi-omic, single-cell, and biochemical profiles of astronauts guide pharmacological strategies for returning to gravity
+
+The NASA twins study: a multidimensional analysis of a year-long human spaceflight
+
+Stress related shift toward inflammaging in cosmonauts after long-duration space flight
+
+An introduction to immunology and immunopathology
+
+Single-cell multi-ome and immune profiles of the Inspiration4 crew reveal conserved, cell-type, and sex-specific responses to spaceflight
+
+Antimicrobial anxiety: the impact of stress on antimicrobial immunity
+
+Salivary antimicrobial proteins and stress biomarkers are elevated during a 6-month mission to the International Space Station
+
+Alterations in saliva and plasma cytokine concentrations during long-duration spaceflight
+
+Seiler, A., Fagundes, C. P. & Christian, L. M. in Stress Challenges and Immunity in Space: From Mechanisms to Monitoring and Preventive Strategies (ed A. Choukèr) 71–92 (Springer International Publishing, 2020).
+
+Psychological stress and the human immune system: a meta-analytic study of 30 years of inquiry
+
+Countermeasures-based improvements in stress, immune system dysregulation and latent herpesvirus reactivation onboard the International Space Station—relevance for deep space missions and terrestrial medicine
+
+Latent virus reactivation in astronauts on the International Space Station
+
+Elevated stress hormone levels relate to Epstein-Barr virus reactivation in astronauts
+
+Simulated microgravity potentiates generation of reactive oxygen species in cells
+
+Chronic granulomatous disease (CGD) and complete myeloperoxidase deficiency both yield strongly reduced dihydrorhodamine 123 test signals but can be easily discerned in routine testing for CGD
+
+The role of reactive oxygen species in regulating T cell-mediated immunity and disease
+
+Key points for the development of antioxidant cocktails to prevent cellular stress and damage caused by reactive oxygen species (ROS) during manned space missions
+
+Herpes simplex virus-specific memory CD8+ T cells are selectively activated and retained in latently infected sensory ganglia
+
+Herpes virus reactivation in astronauts during spaceflight and its application on Earth
+
+Latent viral reactivation is associated with changes in plasma antimicrobial protein concentrations during long-duration spaceflight
+
+Mehta, S. K. et al. Dermatitis during Spaceflight Associated with HSV-1 Reactivation. Viruses14, 10.3390/v14040789 (2022).
+
+Asymptomatic reactivation and shed of infectious varicella zoster virus in astronauts
+
+Spaceflight and simulated microgravity suppresses macrophage development via altered RAS/ERK/NFκB and metabolic pathways
+
+Hindlimb unloading, a physiological model of microgravity, modifies the murine bone marrow IgM repertoire in a similar manner as aging but less strongly
+
+Plasticity of the human IgM repertoire in response to long-term spaceflight
+
+Update on the effects of microgravity on the musculoskeletal system
+
+Bed rest and immunity
+
+Bonnefoy, J. et al. B-cell homeostasis is maintained during two months of head-down tilt bed rest with or without antioxidant supplementation. Front. Immunol.13, 10.3389/fimmu.2022.830662 (2022).
+
+Epsley, S. et al. The effect of inflammation on bone. Front. Physiol.11, 10.3389/fphys.2020.511799 (2021).
+
+Alterations in adaptive immunity persist during long-duration spaceflight
+
+B cell homeostasis is maintained during long-duration spaceflight
+
+Changes in neutrophil functions in astronauts
+
+Jacob, P., Bonnefoy, J., Ghislin, S. & Frippiat, J.-P. Long-duration head-down tilt bed rest confirms the relevance of the neutrophil to lymphocyte ratio and suggests coupling it with the platelet to lymphocyte ratio to monitor the immune health of astronauts. Front. Immunol.13, 10.3389/fimmu.2022.952928 (2022).
+
+The natural cytotoxicity in cosmonauts on board space stations
+
+Natural killer cells after ALTAIR mission
+
+Changes in monocyte functions of astronauts
+
+Effect of spaceflight on ability of monocytes to respond to endotoxins of gram-negative bacteria
+
+NK cell function is impaired during long-duration spaceflight
+
+Effects of simulated microgravity on primary human NK cells
+
+Effects of spaceflight on the immunoglobulin repertoire of unimmunized C57BL/6 mice
+
+National Academies of Sciences, E. & Medicine. Thriving in Space: Ensuring the Future of Biological and Physical Sciences Research: A Decadal Survey for 2023-2032. (The National Academies Press, 2023).
+
+O’Connor, C. & Adams, J. U. Essentials of Cell Biology, https://www.nature.com/scitable/ebooks/cell-biology-for-seminars-14760004/129391449 (2010).
+
+Flood, D., Lee, E. S. & Taylor, C. T. Intracellular energy production and distribution in hypoxia. J. Biol. Chem.299, 10.1016/j.jbc.2023.105103 (2023).
+
+Immune cell regulation by autocrine purinergic signalling
+
+Physiological control of immune response and inflammatory tissue damage by hypoxia-inducible factors and adenosine A2A receptors
+
+Purinergic signaling: a fundamental mechanism in neutrophil activation
+
+Hypoxia and inflammation
+
+Immune sensitization during 1 year in the Antarctic high-altitude Concordia Environment
+
+Decreased B and T lymphocyte attenuator in Behcet’s disease may trigger abnormal Th17 and Th1 immune responses
+
+SLAM family receptors and the SLAM-associated protein (SAP) modulate T cell functions
+
+Feuerecker, M. et al. One year in the extreme isolation of Antarctica-is this enough to modulate an “allergic” sensitization? Biomedicines10, 10.3390/biomedicines10020448 (2022).
+
+PlanHab study: consequences of combined normobaric hypoxia and bed rest on adenosine kinetics
+
+Spaceflight virology: what do we know about viral threats in the spaceflight environment?
+
+Simpson, A. C. et al. Draft genome sequences of various bacterial phyla isolated from the International Space Station. Microbiol. Resour. Announc.10, 10.1128/mra.00214-21 (2021).
+
+Space Station conditions are selective but do not alter microbial characteristics relevant to human health
+
+Advances in space microbiology
+
+Escherichia coli growth under modeled reduced gravity
+
+Growth and membrane polarization in Pseudomonas aeruginosa UG2 grown in randomized microgravity in a high aspect ratio vessel
+
+Microbial responses to microgravity and other low-shear environments
+
+Survival of environment-derived opportunistic bacterial pathogens to martian conditions: is there a concern for human missions to Mars?
+
+Investigation of space flight effects on Escherichia coli and a proposed model of underlying physical mechanisms
+
+Space microbiology
+
+Study of minimal inhibitory concentration of antibiotics on bacteria cultivated in vitro in space (Cytos 2 experiment)
+
+Space flight alters bacterial gene expression and virulence and reveals a role for global regulator Hfq
+
+Antibiotic activity in space
+
+Bacterial biofilm formation under microgravity conditions
+
+Microgravity as a novel environmental signal affecting Salmonella enterica serovar Typhimurium virulence
+
+Biofilms: Understanding the structure and contribution towards bacterial resistance in antibiotics
+
+Immune recognition of putative alien microbial structures: host–pathogen interactions in the age of space travel
+
+Prospective use of probiotics to maintain astronaut health during spaceflight
+
+Tesei, D., Jewczynko, A., Lynch, A. M. & Urbaniak, C. Understanding the complexities and changes of the astronaut microbiome for successful long-duration space missions. Life12, 10.3390/life12040495 (2022).
+
+[The quantitative composition of the intestinal lactoflora before and after space flights of different lengths]
+
+Epidemiology and risk factors for IBD
+
+Tu, P. et al. Gut microbiome toxicity: connecting the environment and gut microbiome-associated diseases. Toxics8, 10.3390/toxics8010019 (2020).
+
+Role of environmental chemicals in diabetes and obesity: a National Toxicology Program workshop review
+
+Effects of spaceflight on the composition and function of the human gut microbiota
+
+The gut microbiota of rural Papua New Guineans: composition, diversity patterns, and ecological processes
+
+Human gut microbiome viewed across age and geography
+
+The human microbiome in evolution
+
+Impact of diet in shaping gut microbiota revealed by a comparative study in children from Europe and rural Africa
+
+Diversity, stability and resilience of the human gut microbiota
+
+Environmental biodiversity, human microbiota, and allergy are interrelated
+
+Regulation of the immune system by biodiversity from the natural environment: an ecosystem service essential to health
+
+Comprehensive analysis of the skin fungal microbiota of astronauts during a half-year stay at the International Space Station
+
+The skin mycobiome of an astronaut during a 1-year stay on the International Space Station
+
+Impact of modeled microgravity stress on innate immunity in a beneficial animal-microbe symbiosis
+
+The microbiome extends host evolutionary potential
+
+Hammond, T. G. & Birdsall, H. H. in Handbook of Space Pharmaceuticals (eds Y. Pathak, M. Araújo dos Santos, & L. Zea) 1-17 (Springer International Publishing, 2018).
+
+Microgravity as a biological tool to examine host-pathogen interactions and to guide development of therapeutics and preventatives that target pathogenic bacteria
+
+Scott, N. R., Mann, B., Tuomanen, E. I. & Orihuela, C. J. Multi-valent protein hybrid pneumococcal vaccines: a strategy for the next generation of vaccines. Vaccines9, 10.3390/vaccines9030209 (2021).
+
+The middle way of evolution
+
+Human adaptation to deep space environment: an evolutionary perspective of the foreseen interplanetary exploration
+
+Is bone tissue really affected by swimming? A systematic review
+
+Varying environments can speed up evolution
+
+Coevolution in multidimensional trait space favours escape from parasites and pathogens
+
+The adaptation of Escherichia coli cells grown in simulated microgravity for an extended period is both phenotypic and genomic
+
+Kawaguchi, Y. et al. DNA damage and survival time course of deinococcal cell pellets during 3 years of exposure to outer space. Front. Microbiol.11, 10.3389/fmicb.2020.02050 (2020).
+
+Nitrogen cycle microorganisms can be reactivated after Space exposure
+
+Worldspaceflight.com. Astronaut/Cosmonaut Statistics - Who Is Currently In Space?, https://www.worldspaceflight.com/bios/stats.php (2024).
+
+Arguello, E. et al. An exploration of Mars colonization with agent-based modeling. arXiv preprint. 10.48550/arXiv.2308.05916 (2023).
+
+Small population size and extremely low levels of genetic diversity in island populations of the platypus, Ornithorhynchus anatinus
+
+Roy, P. Encyclopedia of Animal Cognition and Behavior (eds J. Vonk & T. K. Shackelford) 846-849 (Springer International Publishing, 2022).
+
+Continuous immunotypes describe human immune variation and predict diverse responses
+
+Evolution of the immune system in humans from infancy to old age
+
+A balancing act: mechanisms by which the fetus avoids rejection by the maternal immune system
+
+Regulatory T cells mediate maternal tolerance to the fetus
+
+Uterine NK cells: active regulators at the maternal-fetal interface
+
+ACOG Committee Opinion No. 753: Assessment and treatment of pregnant women with suspected or confirmed influenza. Obstet. Gynecol.132, e169-e173 (2018).
+
+Aging and immune function: molecular mechanisms to interventions
+
+Onset of immune senescence defined by unbiased pyrosequencing of human immunoglobulin mRNA repertoires
+
+Hay fever, hygiene, and household size
+
+Cesarean versus vaginal delivery: long-term infant outcomes and the hygiene hypothesis
+
+Delivery mode shapes the acquisition and structure of the initial microbiota across multiple body habitats in newborns
+
+Microbial ecology and host-microbiota interactions during early life stages
+
+Development of immunity in early life
+
+Protection from childhood asthma and allergy in Alpine farm environments-the GABRIEL advanced studies
+
+Airway diseases and allergies in East and West German children during the first 5 years after reunification
+
+Microbial ‘Old Friends’, immunoregulation and stress resilience
+
+Exercise as a countermeasure for latent viral reactivation during long duration space flight
+
+Mechanisms of nutrient modulation of the immune response
+
+Probiotics into outer space: feasibility assessments of encapsulated freeze-dried probiotics during 1 month’s storage on the International Space Station
+
+Temporal dynamics of the gut microbiota in people sharing a confined environment, a 520-day ground-based space simulation, MARS500
+
+Faecalibacterium prausnitzii is an anti-inflammatory commensal bacterium identified by gut microbiota analysis of Crohn disease patients
+
+Turroni, S. et al. Gut microbiome and space travelers’ health: state of the art and possible pro/prebiotic strategies for long-term space missions. Front. Physiol.11, 10.3389/fphys.2020.553929 (2020).
+
+Bukley, A., Paloski, W. H., and Clément, G. Physics of Artificial Gravity in Artificial Gravity. The Space Technology Library (eds G. Clément & A. Bukley), Springer, New York, NY. 10.1007/0-387-70714-X_2 (2007).
+
+Calorie restriction accelerates the catabolism of lean body mass during 2 wk of bed rest
+
+Calorie restriction modulates inactivity-induced changes in the inflammatory markers C-reactive protein and pentraxin-3
+
+Supplementation of fermented Maillard-reactive whey protein enhances immunity by increasing NK cell activity
+
+Effect of vitamin E supplementation on antioxidant defense systems and humoral immune responses in young, middle-aged and elderly Korean women
+
+Effect of fruit and vegetable consumption on immune function in older people: a randomized controlled trial
+
+Evidence based selection of probiotic strains to promote astronaut health or alleviate symptoms of illness on long duration spaceflight missions
+
+US Food and Drug Administration. Guidance for Industry: Frequently Asked Questions About GRAS for Substances Intended for Use in Human or Animal Food, https://www.fda.gov/regulatory-information/search-fda-guidance-documents/guidance-industry-frequently-asked-questions-about-gras-substances-intended-use-human-or-animal-food (2016).
+
+Crucian, B. E. et al. Immune system dysregulation during spaceflight: potential countermeasures for deep space exploration missions. Front. Immunol.9, 10.3389/fimmu.2018.01437 (2018).
+
+Makedonas, G. et al. Specific immunologic countermeasure protocol for deep-space exploration missions. Front. Immunol.10, 10.3389/fimmu.2019.02407 (2019).
+
+Origin and evolution of the adaptive immune system: genetic events and selective pressures
+
+Buchheim, J.-I. et al. Monitoring functional immune responses with a cytokine release assay: ISS flight hardware design and experimental protocol for whole blood cultures executed under microgravity conditions. Front. Physiol.14, 10.3389/fphys.2023.1322852 (2024).
+
+University of California Space Health Program. Space Aging Gravity Experiment (A.G.E.), https://spacehealth.ucsf.edu/space-aging-gravity-experiment-age (2024).
+
+Space radiation: the number one risk to astronaut health beyond low Earth orbit
+
+Bioastronautics: the influence of microgravity on astronaut health
+
+Ponomarev, S. et al. Immunological aspects of isolation and confinement. Front. Immunol.12, 10.3389/fimmu.2021.697435 (2021).
+
+The burden of space exploration on the mental health of astronauts: a narrative review
+
+Slack, K. J., Williams, T. J., Schneiderman, J. S., Whitmire, A. M., Picano, J. J. Risk of Adverse Cognitive or Behavioral Conditions and Psychiatric Disorders. 123 (NASA, Housten Texas 2016).
+
+Effects of exercise countermeasures on multisystem function in long duration spaceflight astronauts
+
+Factors affecting flavor perception in space: does the spacecraft environment influence food intake by astronauts?
+
+Sleep and Circadian Rhythms in Four Orbiting Astronauts
+
+Jancy C. McPhee, J. B. C. Human health and performance risks of space exploration missions 389 (NASA, Housten Texas 77058, 2009).
+
+Buchheim, J.-I., Feuerecker, M. & Choukér, A. in Stress Challenges and Immunity in Space: From Mechanisms to Monitoring and Preventive Strategies (ed A. Choukèr) 221-240 (Springer International Publishing, 2020).

@@ -1,16 +1,18 @@
 """Ingestion pipeline for Ammara's 9 curated scientific sources (S1-S9).
 
-Reads downloaded abstracts and open-access full texts from ../data/sources_s1_s9
-(when present on the local machine) and merges them with the verified citation
-metadata and clinical boundaries in rag/ask.py, writing:
+Reads downloaded abstracts and open-access full texts from `rag/sources`
+(or `../data/sources_s1_s9` if present) and merges them with the verified citation
+metadata and clinical boundaries in `rag/ask.py`, writing:
   - rag/index/corpus.json
   - rag/index/meta.json ({"documents_indexed": 9})
 
 Usage (from repo root):
     python -m rag.ingest
+    python -m rag.ingest --download
 """
 from __future__ import annotations
 
+import argparse
 import copy
 import json
 import os
@@ -19,10 +21,22 @@ from pathlib import Path
 from rag.ask import DEFAULT_CORPUS, DEFAULT_LLM_CONFIG, detect_hardware
 
 
+def _strip_header(text: str) -> str:
+    sep = "=" * 72
+    if sep in text:
+        text = text.split(sep, 1)[1]
+    return text.strip()
+
+
 def build_index(sources_dir: Path | None = None, index_dir: Path | None = None) -> dict:
     repo_root = Path(__file__).resolve().parents[1]
     index_dir = Path(index_dir or os.environ.get("RAG_INDEX_DIR", repo_root / "rag" / "index"))
-    sources_dir = Path(sources_dir or (repo_root.parent / "data" / "sources_s1_s9"))
+    if sources_dir is None:
+        local_sources = repo_root / "rag" / "sources"
+        legacy_sources = repo_root.parent / "data" / "sources_s1_s9"
+        sources_dir = local_sources if local_sources.is_dir() else legacy_sources
+    else:
+        sources_dir = Path(sources_dir)
 
     index_dir.mkdir(parents=True, exist_ok=True)
     corpus = copy.deepcopy(DEFAULT_CORPUS)
@@ -43,14 +57,14 @@ def build_index(sources_dir: Path | None = None, index_dir: Path | None = None) 
         fulltext_matches = list(sources_dir.glob(f"{sid}_PMC*.txt")) if sources_dir.is_dir() else []
 
         if abstract_path.is_file():
-            doc["abstract"] = abstract_path.read_text(encoding="utf-8").strip()
+            doc["abstract"] = _strip_header(abstract_path.read_text(encoding="utf-8"))
             enriched_count += 1
         elif info.get("abstract"):
             doc["abstract"] = info["abstract"]
             enriched_count += 1
 
         if fulltext_matches:
-            ft_text = fulltext_matches[0].read_text(encoding="utf-8", errors="ignore").strip()
+            ft_text = _strip_header(fulltext_matches[0].read_text(encoding="utf-8", errors="ignore"))
             doc["fulltext_chars"] = len(ft_text)
             doc["fulltext_preview"] = ft_text[:1500]
         else:
@@ -97,5 +111,21 @@ def build_index(sources_dir: Path | None = None, index_dir: Path | None = None) 
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Ingest S1-S9 scientific sources into rag/index/.")
+    parser.add_argument(
+        "--download",
+        action="store_true",
+        help="Download S1-S9 abstracts and open-access full texts into rag/sources/ before indexing",
+    )
+    parser.add_argument(
+        "--pdf",
+        action="store_true",
+        help="Also download open-access PDFs when --download is used",
+    )
+    args = parser.parse_args()
+    if args.download:
+        from rag.download_sources import download_sources
+
+        download_sources(download_pdfs=args.pdf)
     result = build_index()
     print(f"Indexed {result['documents_indexed']} sources into rag/index/ (enriched={result['sources_enriched_from_disk']}): {result['source_ids']}")

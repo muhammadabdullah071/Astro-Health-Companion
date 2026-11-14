@@ -176,11 +176,18 @@ retrieval_only(question: str, alert: dict | None = None, history: list[dict[str,
 
 ---
 
-## 5. Indexing & Verification Commands (Run from Repository Root)
+## 5. Source Download, Indexing & Verification Commands (Run from Repository Root)
 
 ```bash
-# Build/refresh rag/index/corpus.json and rag/index/meta.json (9 documents + hardware profile)
+# Download S1-S9 abstracts, open-access full texts, and license manifest into rag/sources/
+python -m rag.download_sources
+
+# Optionally also download open-access PDFs (gitignored via *.pdf)
+python -m rag.download_sources --pdf
+
+# Build/refresh rag/index/corpus.json and rag/index/meta.json (or pass --download to fetch first)
 python -m rag.ingest
+python -m rag.ingest --download
 
 # Check PC hardware capability and active LLM configuration
 python -m rag.ask --check

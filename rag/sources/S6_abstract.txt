@@ -1,0 +1,10 @@
+Source ID: S6
+Title: Challenges for the human immune system after leaving Earth
+Authors: Marchal S, Choukér A, Bereiter-Hahn J, et al.
+Journal: npj Microgravity. 2024;10:106
+DOI: https://doi.org/10.1038/s41526-024-00446-9
+PMID: 39557881 | PMCID: PMC11574097
+License: cc-by-4.0
+========================================================================
+
+From the start of life on Earth, several immune defense mechanisms have evolved to guarantee cellular integrity, homeostasis, and host survival. All these sophisticated balances as shaped by and towards the environmental needs have occurred over hundreds of millions of years. Human spaceflight involves various health hazards, such as higher levels of radiation, altered gravity, isolation and confinement, living in tight quarters, and stress associated with being away from home. A growing body of evidence points towards immunological changes in astronauts, including heightened pro-inflammatory responses, reactivation of latent viruses, and cell-mediated alterations, reflecting a dysbalanced state in astronauts. Simultaneously, enhanced pathogenicity, virulence, and drug resistance properties of microorganisms tip the scale out of favor for prolonged stay in space. As we have learned from the past, we see potential for the human immune system, forged and maintained throughout evolutionary history, to adapt to the space exposome. It is unlikely that this will happen in the short time frames set for current space exploration missions. Instead, major risks to astronaut health need to be addressed first, before humans can safely evolve into the space environment.
