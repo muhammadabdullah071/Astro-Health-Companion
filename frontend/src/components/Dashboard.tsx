@@ -1,15 +1,14 @@
 'use client'
 import Link from 'next/link'
-import { useRef, useState, type PointerEvent } from 'react'
-import { D, KEYS, M, buildAlerts, cap, col, fd, stat, summary, type Key } from '@/lib/data'
+import { useEffect, useRef, useState, type PointerEvent } from 'react'
+import { KEYS, M, cap, col, fd, stat, summary, type Alert, type Key, type Reading } from '@/lib/data'
 import { useApp } from './AppProvider'
 import { ARR, BELL, CountUp, Ecg, Ico, Tilt, cv } from './ui'
-import { useEffect } from 'react'
 
-function Chart() {
+function Chart({ data }: { data: Reading[] }) {
   const [ck, setCk] = useState<Key>('hr'), [cr, setCr] = useState(14)
   const box = useRef<HTMLDivElement>(null), [tip, setTip] = useState<{ x: number; y: number; t: string } | null>(null)
-  const m = M[ck], d = D.slice(-cr), W = 720, H = 260, L = 44, R = 12, T = 14, B = 26, v = d.map((r) => r[ck])
+  const m = M[ck], d = data.slice(-cr), W = 720, H = 260, L = 44, R = 12, T = 14, B = 26, v = d.map((r) => r[ck])
   let mn = Math.min(m.lo, ...v) - (ck === 'hr' ? 4 : 0.3), mx = Math.max(m.hi, ...v) + (ck === 'hr' ? 4 : 0.3)
   if (ck === 'spo2') mx = 100.5
   const X = (i: number) => L + (i * (W - L - R)) / (d.length - 1), Y = (y: number) => T + ((mx - y) / (mx - mn)) * (H - T - B)
@@ -42,22 +41,54 @@ function Chart() {
 }
 
 export default function Dashboard() {
-  const { ver } = useApp(); void ver
-  const x = D[D.length - 1], al = buildAlerts(), hr = Math.round(x.hr), warn = x.hr > 75
+  const { ver, readings } = useApp(); void ver
+  const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
-  useEffect(() => { const t = setTimeout(() => setLoading(false), 500); return () => clearTimeout(t) }, [])
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 500); return () => clearTimeout(t)
+  }, [])
+
+  // Fetch backend alerts so the panel matches the /alerts page.
+  useEffect(() => {
+    let dead = false
+    fetch('/api/alerts', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((a: Alert[]) => { if (!dead) setAlerts(a) })
+      .catch(() => { if (!dead) setAlerts([]) })
+    return () => { dead = true }
+  }, [ver])
+
+  if (readings.length === 0) {
+    return (
+      <section className="view on" id="dashboard">
+        <h1>Good morning, Commander</h1>
+        <p className="sub">Loading readings…</p>
+      </section>
+    )
+  }
+
+  const x = readings[readings.length - 1]
+  const hr = Math.round(x.hr), warn = x.hr > 75
+  const lastDate = fd(x.t)
+
   return (
     <section className="view on" id="dashboard">
       <h1>Good morning, Commander</h1>
-      <p className="sub">Mission day 142. Last update 14 Nov 2026, 08:00 UTC. All readings are simulated.</p>
+      <p className="sub">Last update {lastDate} 2026, 08:00 UTC. All readings are simulated.</p>
       <Tilt className="card hero" k={6}>
-        <div><div className="lb" style={{ color: 'var(--mut)' }}>Resting heart rate</div><div className="big"><span id="hrBig">{hr}</span> <small>bpm</small></div>
-          <span className="pill" id="hrPill" style={{ ...cv(warn ? 'var(--watch)' : 'var(--ok)'), marginTop: 10 }}>{warn ? `Watch: ${hr - 62} bpm above baseline` : 'In range'}</span></div>
+        <div>
+          <div className="lb" style={{ color: 'var(--mut)' }}>Resting heart rate</div>
+          <div className="big"><span id="hrBig">{hr}</span> <small>bpm</small></div>
+          <span className="pill" id="hrPill" style={{ ...cv(warn ? 'var(--watch)' : 'var(--ok)'), marginTop: 10 }}>
+            {warn ? `Watch: ${hr - 62} bpm above baseline` : 'In range'}
+          </span>
+        </div>
         <Ecg id="ecg" hr={hr} />
       </Tilt>
       <div className="grid g4" id="cards" style={{ marginBottom: 16 }}>
         {KEYS.map((k) => {
-          const v = x[k], [s, txt] = stat(k, v), m = M[k], pts = D.slice(-14).map((r) => r[k]), mn = Math.min(...pts), mxx = Math.max(...pts)
+          const v = x[k], [s, txt] = stat(k, v), m = M[k], pts = readings.slice(-14).map((r) => r[k]), mn = Math.min(...pts), mxx = Math.max(...pts)
           return (
             <Tilt key={k} className={'card m' + (loading ? ' skel' : '')}>
               <div className="lb">{m.l}</div>
@@ -69,12 +100,24 @@ export default function Dashboard() {
         })}
       </div>
       <div className="grid g2">
-        <Chart />
+        <Chart data={readings} />
         <div className="grid" style={{ alignContent: 'start' }}>
-          <div className="card"><h2 style={{ fontSize: 18, marginBottom: 8 }}>Daily summary</h2><p>{summary(x)}</p><p className="note">Generated from rules, not a diagnosis.</p></div>
-          <div className="card"><h2 style={{ fontSize: 18, marginBottom: 8 }}>Active alerts</h2>
-            {al.length ? al.slice(0, 2).map((a) => <p key={a.id} style={{ marginBottom: 8 }}><span className="pill" style={cv(`var(--${a.s})`)}>{cap(a.s)}</span> {a.n}</p>) : <p className="note">No active alerts.</p>}
-            <Link href="/alerts" className="btn o" style={{ marginTop: 10, textDecoration: 'none' }}><Ico d={BELL} cls="bi" />See all alerts<Ico d={ARR} cls="ar" /></Link></div>
+          <div className="card">
+            <h2 style={{ fontSize: 18, marginBottom: 8 }}>Daily summary</h2>
+            <p>{summary(x)}</p>
+            <p className="note">Generated from rules, not a diagnosis.</p>
+          </div>
+          <div className="card">
+            <h2 style={{ fontSize: 18, marginBottom: 8 }}>Active alerts</h2>
+            {alerts.length ? alerts.slice(0, 2).map((a) => (
+              <p key={a.id} style={{ marginBottom: 8 }}>
+                <span className="pill" style={cv(`var(--${a.s})`)}>{cap(a.s)}</span> {a.n}
+              </p>
+            )) : <p className="note">No active alerts.</p>}
+            <Link href="/alerts" className="btn o" style={{ marginTop: 10, textDecoration: 'none' }}>
+              <Ico d={BELL} cls="bi" />See all alerts<Ico d={ARR} cls="ar" />
+            </Link>
+          </div>
         </div>
       </div>
     </section>
