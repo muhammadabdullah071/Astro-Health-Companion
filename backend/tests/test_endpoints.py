@@ -1,3 +1,5 @@
+from fastapi.testclient import TestClient
+
 ALERT_KEYS = {
     "id", "rule_id", "rule", "severity", "category", "metric", "value", "unit", "baseline", "delta",
     "baseline_status", "timestamp", "message", "next_step", "source", "data_quality", "data_label",
@@ -9,12 +11,12 @@ def test_readings_default_is_14_days_oldest_first_and_labelled(client):
     r = client.get("/api/readings").json()
     assert r["data_label"] == "SIMULATED"
     ts = [x["timestamp"] for x in r["readings"]]
-    assert len(ts) == 14 and ts == sorted(ts)
+    assert len(ts) == 14 and ts == sorted(ts) and ts[-1] == "2026-11-14T08:00:00Z"
 
 
 def test_readings_days_param(client):
     assert len(client.get("/api/readings?days=7").json()["readings"]) == 7
-    assert len(client.get("/api/readings?days=30").json()["readings"]) == 26   # the whole dataset
+    assert len(client.get("/api/readings?days=90").json()["readings"]) == 30   # the whole dataset
 
 
 def test_readings_still_have_only_the_frozen_contract_fields(client):
@@ -27,14 +29,15 @@ def test_readings_rejects_bad_days_with_error_shape(client):
     assert r.status_code == 422 and r.json()["error"]["code"] == "VALIDATION_ERROR"
 
 
-def test_demo_alerts_in_the_last_14_days(client):
+def test_default_alerts_are_the_three_demo_alerts(client):
     alerts = client.get("/api/alerts").json()["alerts"]
-    assert [a["rule_id"] for a in alerts] == ["HR-01", "SLEEP-01"]
-    assert [a["id"] for a in alerts] == ["a1", "a2"]
-    hr, sleep = alerts
-    assert hr["severity"] == "watch" and hr["value"] == 78 and round(hr["delta"]) == 16
-    assert hr["timestamp"] == "2026-11-08T08:00:00Z"                     # day 20
-    assert sleep["severity"] == "notice" and sleep["timestamp"] == "2026-11-14T08:00:00Z"   # day 26
+    assert [a["rule_id"] for a in alerts] == ["HR-01", "SLEEP-01", "DATA-01"]
+    assert [a["id"] for a in alerts] == ["a1", "a2", "a3"]
+    hr, sleep, data = alerts
+    assert hr["severity"] == "watch" and hr["value"] == 78 and hr["baseline"] == 62 and hr["delta"] == 16
+    assert hr["timestamp"] == "2026-11-04T08:00:00Z"                       # mission day 20
+    assert sleep["severity"] == "notice" and sleep["timestamp"] == "2026-11-10T08:00:00Z"   # day 26
+    assert data["category"] == "data_quality" and data["timestamp"] == "2026-11-06T08:00:00Z"   # day 22
 
 
 def test_every_alert_has_all_fields_and_the_simulated_label(client):
@@ -43,20 +46,34 @@ def test_every_alert_has_all_fields_and_the_simulated_label(client):
 
 
 def test_alerts_days_param_reaches_back_to_calibration_alerts(client):
-    everything = client.get("/api/alerts?days=26").json()["alerts"]
-    assert len(everything) == 9
-    assert sum(a["rule_id"] == "DATA-02" for a in everything) == 7
-    assert all(a["category"] == "setup" and a["baseline_status"] == "not_established"
-               for a in everything if a["rule_id"] == "DATA-02")
+    everything = client.get("/api/alerts?days=30").json()["alerts"]
+    assert len(everything) == 10
+    setup = [a for a in everything if a["rule_id"] == "DATA-02"]
+    assert len(setup) == 7
+    assert all(a["category"] == "setup" and a["baseline_status"] == "not_established" for a in setup)
 
 
 def test_alerts_rejects_bad_days(client):
     assert client.get("/api/alerts?days=0").status_code == 422
 
 
-def test_profile_has_mission_day(client):
+def test_profile_mission_day_matches_the_dataset_day(client):
     p = client.get("/api/profile").json()
-    assert p["mission_day"] == 143 and p["data_label"] == "SIMULATED" and p["baseline_window_days"] == 7
+    assert p["id"] == "ASTRO-01" and p["mission_day"] == 30
+    assert p["data_label"] == "SIMULATED" and p["baseline_window_days"] == 7
+
+
+def test_second_astronaut_can_be_served_with_astro_id(tmp_path, monkeypatch):
+    from app.main import create_app
+
+    monkeypatch.setenv("ASTRO_DB_PATH", str(tmp_path / "two.db"))
+    monkeypatch.setenv("ASTRO_ID", "ASTRO-02")
+    monkeypatch.setenv("RAG_INDEX_DIR", str(tmp_path / "none"))
+    with TestClient(create_app()) as c:
+        assert c.get("/api/profile").json()["id"] == "ASTRO-02"
+        assert c.get("/api/readings?days=1").json()["readings"][0]["heart_rate_bpm"] == 65
+        assert c.get("/api/alerts").json()["alerts"] == []                       # clean after calibration
+        assert {a["rule_id"] for a in c.get("/api/alerts?days=30").json()["alerts"]} == {"DATA-02"}
 
 
 def test_unknown_route_uses_error_shape(client):

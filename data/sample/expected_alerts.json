@@ -1,0 +1,78 @@
+{
+  "data_label": "SIMULATED",
+  "note": "Reference outcomes for the documented SIMULATED scenarios using prototype rules. Not medical thresholds.",
+  "expected_events": [
+    {
+      "profile_id": "ASTRO-01",
+      "mission_day": 1,
+      "timestamp": "2026-10-16T08:00:00Z",
+      "rule_id": "DATA-02",
+      "expected": true,
+      "reason": "Fewer than 7 usable preceding/calibration readings"
+    },
+    {
+      "profile_id": "ASTRO-01",
+      "mission_day": 20,
+      "timestamp": "2026-11-04T08:00:00Z",
+      "rule_id": "HR-01",
+      "expected": true,
+      "severity": "WATCH",
+      "value": 78,
+      "baseline": 62,
+      "delta": 16,
+      "unit": "bpm"
+    },
+    {
+      "profile_id": "ASTRO-01",
+      "mission_day": 20,
+      "timestamp": "2026-11-04T08:00:00Z",
+      "rule_id": "HR-02",
+      "expected": false,
+      "reason": "Only one elevated daily HR observation"
+    },
+    {
+      "profile_id": "ASTRO-01",
+      "mission_day": 22,
+      "timestamp": "2026-11-06T08:00:00Z",
+      "rule_id": "SPO2-01",
+      "expected": false,
+      "reason": "One isolated dip, additionally marked poor-quality in sidecar"
+    },
+    {
+      "profile_id": "ASTRO-01",
+      "mission_day": 22,
+      "timestamp": "2026-11-06T08:00:00Z",
+      "rule_id": "DATA-01",
+      "expected": true,
+      "requires": "spo2_quality from traceability.csv",
+      "reason": "Poor signal-quality flag, not a physiological inference"
+    },
+    {
+      "profile_id": "ASTRO-01",
+      "mission_day": 26,
+      "timestamp": "2026-11-10T08:00:00Z",
+      "rule_id": "SLEEP-01",
+      "expected": true,
+      "severity": "NOTICE",
+      "readings": [
+        5.4,
+        5.6,
+        5.2
+      ],
+      "unit": "h"
+    },
+    {
+      "profile_id": "ASTRO-01",
+      "mission_day": 26,
+      "timestamp": "2026-11-10T08:00:00Z",
+      "rule_id": "SLEEP-02",
+      "expected": false,
+      "reason": "Only day 24 exceeds 1.5 hours below its preceding rolling 7-night baseline; not three consecutive qualifying nights"
+    }
+  ],
+  "fixture_conventions": [
+    "Daily baselines use the previous seven valid comparable readings, excluding the current reading",
+    "DATA-01 requires the optional quality information in traceability.csv",
+    "Skin and core temperatures must never be combined"
+  ]
+}

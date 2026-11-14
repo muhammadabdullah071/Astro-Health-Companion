@@ -40,7 +40,7 @@ DISCLAIMER = "Decision support only - not a medical diagnosis."
 
 
 def default_astronaut_id() -> str:
-    return os.environ.get("ASTRO_ID", "astro-demo-1")
+    return os.environ.get("ASTRO_ID", "ASTRO-01")
 
 
 def db_path() -> Path:
