@@ -83,7 +83,7 @@ MODEL_CATALOG: dict[str, dict[str, Any]] = {
 }
 
 DEFAULT_LLM_CONFIG: dict[str, str] = {
-    "backend": "gguf",        # gguf (default, standalone without Ollama) | auto | ollama | openai | off
+    "backend": "gguf",        # gguf (default, standalone without Ollama) | auto | ollama | openai | groq | off
     "tier": "auto",           # auto | nano | small | standard | off
     "preferred_model": "",    # specific GGUF filename inside models_dir (or Ollama tag)
     "models_dir": "models",   # folder where .gguf models are downloaded and loaded from
@@ -1335,6 +1335,48 @@ def _try_openai_compat_generate(prompt: str, preferred_model: str = "") -> str |
     return None
 
 
+def _try_groq_generate(prompt: str, preferred_model: str = "") -> str | None:
+    """Calls Groq's hosted OpenAI-compatible API (needs GROQ_API_KEY; GROQ_MODEL overrides the model)."""
+    api_key = os.environ.get("GROQ_API_KEY", "").strip()
+    if not api_key:
+        return None
+    # preferred_model usually names a local GGUF/Ollama model, so it is only used when it looks like a Groq id.
+    groq_like = preferred_model if preferred_model and "/" in preferred_model and not preferred_model.endswith(".gguf") else ""
+    model = os.environ.get("GROQ_MODEL", "").strip() or groq_like or "openai/gpt-oss-120b"
+    body_dict: dict[str, Any] = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.1,
+        "max_tokens": 800,
+    }
+    if model.startswith("openai/gpt-oss"):
+        body_dict["reasoning_effort"] = "low"
+    req = urllib.request.Request(
+        "https://api.groq.com/openai/v1/chat/completions",
+        data=json.dumps(body_dict).encode("utf-8"),
+        method="POST",
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+            "User-Agent": "astro-health-companion-rag",
+        },
+    )
+    timeout = max(1.0, float(os.environ.get("ASK_TIMEOUT_SECONDS", "20")) - 2.0)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            if resp.status != 200:
+                return None
+            body = json.loads(resp.read().decode("utf-8"))
+            choices = body.get("choices") or []
+            if choices:
+                text = ((choices[0].get("message") or {}).get("content") or "").strip()
+                text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+                return text if text else None
+    except Exception:
+        return None
+    return None
+
+
 def _enforce_clinical_guardrails(
     text: str,
     question: str,
@@ -1391,6 +1433,11 @@ def _generate_with_selected_llm(
     if backend in ("off", "retrieval_only", "none") or configured_tier in ("off", "retrieval_only", "none"):
         return None
 
+    if backend == "groq":
+        prompt = _build_llm_prompt(question, alert, citations, history=history)
+        raw_ans = _try_groq_generate(prompt, preferred_model)
+        return _enforce_clinical_guardrails(raw_ans, question, alert, citations) if raw_ans else None
+
     hw = detect_hardware()
     # Hardware guardrail: if PC has critically low free RAM (< 2.0 GB) and no GPU VRAM, skip LLM in auto mode
     if configured_tier == "auto" and hw["recommended_tier"] == "off":
@@ -1413,6 +1460,8 @@ def _generate_with_selected_llm(
             raw_ans = _try_ollama_generate(prompt, preferred_model, target_tier)
         if not raw_ans and os.environ.get("LOCAL_OPENAI_URL"):
             raw_ans = _try_openai_compat_generate(prompt, preferred_model)
+        if not raw_ans and os.environ.get("GROQ_API_KEY"):
+            raw_ans = _try_groq_generate(prompt, preferred_model)
 
     return _enforce_clinical_guardrails(raw_ans, question, alert, citations) if raw_ans else None
 
@@ -1616,7 +1665,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--backend",
-        choices=["auto", "ollama", "gguf", "openai", "off"],
+        choices=["auto", "ollama", "gguf", "openai", "groq", "off"],
         default=None,
         help="Set or use a specific LLM backend (auto, ollama, gguf, openai, off).",
     )

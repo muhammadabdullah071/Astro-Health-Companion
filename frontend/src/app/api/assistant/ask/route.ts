@@ -1,10 +1,16 @@
 import { KB, answer } from '@/lib/data'
+import { askWithGroq, groqEnabled } from '@/lib/groqRag'
 import { execFile } from 'node:child_process'
 import path from 'node:path'
 import { promisify } from 'node:util'
 
 const execFileAsync = promisify(execFile)
 const BACKEND_URL = process.env.BACKEND_URL || 'http://127.0.0.1:8000'
+// On Vercel there is no Python runtime or local FastAPI: only call FastAPI when BACKEND_URL is set.
+const ON_VERCEL = Boolean(process.env.VERCEL)
+const USE_FASTAPI = !ON_VERCEL || Boolean(process.env.BACKEND_URL)
+// RAG_PROVIDER=groq forces Groq first even when the local Python RAG is available.
+const GROQ_FIRST = ON_VERCEL || process.env.RAG_PROVIDER === 'groq'
 
 type RagCitation = { title: string; source: string; url: string; excerpt: string }
 type RagResponse = {
@@ -89,8 +95,12 @@ export async function POST(req: Request) {
 
   const question = b.question.trim()
   const suggestions = buildFollowUpSuggestions(question)
-  const ragRes =
-    (await askViaFastApi(question, b.alert_id)) ?? (await askViaLocalPython(question, b.history))
+  const history = Array.isArray(b.history) ? b.history.slice(-6) : []
+  let ragRes: RagResponse | null = null
+  if (GROQ_FIRST && groqEnabled()) ragRes = await askWithGroq(question, history)
+  if (!ragRes && USE_FASTAPI) ragRes = await askViaFastApi(question, b.alert_id)
+  if (!ragRes && groqEnabled()) ragRes = await askWithGroq(question, history)
+  if (!ragRes && !ON_VERCEL) ragRes = await askViaLocalPython(question, history)
 
   if (ragRes && typeof ragRes.answer === 'string') {
     const citations = Array.isArray(ragRes.citations) ? ragRes.citations : []
