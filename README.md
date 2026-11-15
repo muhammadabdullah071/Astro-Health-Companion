@@ -1,140 +1,307 @@
 # Astro-Health Companion
 
-An offline, evidence-grounded astronaut health monitoring and decision-support prototype, built for the
-NASA International Space Apps Challenge 2026 (challenge: **Health Monitoring Software**).
+> **Offline health awareness and evidence-grounded decision support for crews beyond Earth’s reach.**
 
-> **All data in this project is SIMULATED.** Decision support only, not a medical diagnosis.
+[![Live frontend](https://img.shields.io/badge/demo-live-8b5cf6?logo=vercel&logoColor=white)](https://astro-health-companion.vercel.app/)
+[![API status](https://img.shields.io/badge/API-live-22c55e?logo=fastapi&logoColor=white)](https://api.astrohealth.us/api/status)
+[![FastAPI](https://img.shields.io/badge/backend-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/frontend-Next.js-000000?logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 
-## The problem
+Astro-Health Companion is an offline-capable astronaut health monitoring and decision-support prototype built for the **NASA International Space Apps Challenge 2026 — Health Monitoring Software** challenge.
 
-On long missions, far from Earth, astronauts face radiation, isolation and confinement, altered gravity and a
-closed environment. These can bring immune changes, bone loss, cardiovascular events and behavioural-health
-problems, and astronauts must notice many of these changes themselves. This prototype collects health
-indicators, shows how they change over time, flags unusual changes with transparent rules, and lets the
-astronaut ask an offline assistant why an alert appeared. Answers are built from a small library of trusted
-scientific papers and show their sources.
+It tracks simulated vital-sign trends against a personal baseline, explains transparent alerts, and answers health-awareness questions from a curated local scientific library. The system is designed for missions where communication with Earth may be delayed or unavailable.
 
-## What it does
+> **Important:** Every value in this repository is simulated. This is a research/demo prototype, not a medical device or diagnostic system. Its rules are workflow rules, not validated clinical thresholds.
 
-- **Dashboard:** heart rate, SpO2, sleep and skin temperature with 14-day trends and a daily summary.
-- **Transparent alerts:** eight plain-English rules compare each astronaut with their own baseline. Every alert
-  states which rule fired, the value, the baseline, the difference, the severity and a suggested next step.
-- **Offline assistant:** explains an alert using only a local library of papers, with numbered citations. If the
-  model is slow or unavailable it falls back to cited excerpts (retrieval-only mode).
-- **Works offline:** database, rules, library, model and interface all run locally.
-- **Honest labelling:** a SIMULATED badge and a disclaimer on every screen.
+## Live deployments
 
-## Components
+| Experience | URL | Description |
+|---|---|---|
+| Web application | [astro-health-companion.vercel.app](https://astro-health-companion.vercel.app/) | Interactive landing page, dashboard, alerts, assistant and system-status screens |
+| Backend health | [api.astrohealth.us/api/status](https://api.astrohealth.us/api/status) | Live FastAPI status response |
+| API documentation | [api.astrohealth.us/docs](https://api.astrohealth.us/docs) | Interactive Swagger/OpenAPI documentation |
+| OpenAPI schema | [api.astrohealth.us/openapi.json](https://api.astrohealth.us/openapi.json) | Machine-readable API definition |
 
-| Folder | Owner | What it holds |
-|--------|-------|---------------|
-| `frontend/` | Abdullah | Next.js interface: Dashboard, Health Alerts, AI Assistant, System Status |
-| `backend/` | Elthiero | FastAPI + SQLite API, baseline and rules engine, assistant adapter, tests |
-| `rag/` | Cesar | Source ingestion, local index, `ask()` with citations |
-| `research/` | Ammara | Indicators, alert rules, curated sources |
-| `data/` | Sofia | Simulated datasets, data sheet, generator |
-| `tests/` | Shubhi | Cross-component and offline tests |
-| `contract/examples/` | shared | One JSON example per API response (the contract) |
-| `docs/` | shared | Architecture, API contract, limitations, Docker notes |
+The deployed web demo includes a self-contained frontend API layer so it can be explored without a backend connection. The repository also contains the production-shaped FastAPI + SQLite service and the offline retrieval pipeline.
 
-## Quick start (backend)
+## Demo
 
-Needs Python 3.10 or newer. From the repo root:
+Watch the product walkthrough to see the landing page, health dashboard, transparent alerts, evidence-grounded assistant and offline status flow in action.
 
-```bash
-./scripts/run_local.sh          # macOS / Linux
-scripts\run_local.bat           # Windows
+<p align="center">
+  <video src="assets/astro-health-companion-demo.mp4" controls width="850">
+    Your browser does not support embedded video. <a href="assets/astro-health-companion-demo.mp4">Watch the demo video</a>.
+  </video>
+</p>
+
+**[Download or watch the demo video](assets/astro-health-companion-demo.mp4)**
+
+## Why it exists
+
+During long-duration missions, crews may need to interpret changes in heart rate, oxygen saturation, sleep and temperature without immediate clinical support. Astro-Health Companion makes that workflow explicit:
+
+1. **Collect readings** locally.
+2. **Compare readings with the astronaut’s own baseline**, rather than a generic population threshold.
+3. **Raise explainable alerts** that name the rule, value, baseline, severity and next step.
+4. **Explain the alert with cited evidence** from a local scientific library.
+
+## Product capabilities
+
+- **Health dashboard** — 14-day trends for resting heart rate, SpO2, sleep and wearable skin temperature.
+- **Personal baselines** — rolling baselines are calculated from recent valid, comparable readings.
+- **Transparent alerts** — eight plain-English rules produce `notice`, `watch` or `attention` alerts.
+- **Evidence-grounded assistant** — answers use local sources and numbered citations.
+- **Retrieval-only fallback** — the assistant remains useful when the local LLM is slow or unavailable.
+- **Offline-first operation** — SQLite, alert logic, source metadata and the interface can run locally.
+- **Installable frontend** — the Next.js app includes a basic service worker and web manifest.
+- **Honest safety labelling** — simulated data and the decision-support disclaimer are surfaced throughout the experience.
+
+## System architecture
+
+```text
+                         ┌──────────────────────────┐
+                         │ Next.js frontend          │
+                         │ dashboard / alerts / UX  │
+                         └────────────┬─────────────┘
+                                      │ API contract v1
+                         ┌────────────▼─────────────┐
+                         │ FastAPI backend           │
+                         │ routes + SQLite           │
+                         └──────┬─────────┬──────────┘
+                                │         │
+                 readings/alerts│         │assistant questions
+                                │         ▼
+                         ┌──────▼───┐ ┌─────────────┐
+                         │ Rules and │ │ Local RAG   │
+                         │ baselines │ │ + Ollama    │
+                         └──────┬────┘ └──────┬──────┘
+                                │             │
+                         ┌──────▼─────────────▼──────┐
+                         │ Simulated datasets +       │
+                         │ curated scientific sources │
+                         └───────────────────────────┘
 ```
 
-Then open <http://127.0.0.1:8000/docs>. The database is created and seeded on first start.
+### Repository map
 
-```bash
-python scripts/smoke_test.py    # checks every endpoint of the running server
-./scripts/run_tests.sh          # backend test suite
-./scripts/reset_demo.sh         # rebuild the demo database (Windows: scripts\reset_demo.bat)
-```
-
-Docker is optional: `docker compose up --build` (see [docs/running-with-docker.md](docs/running-with-docker.md)).
-Settings need no configuration; to change one, copy `.env.example` to `.env`.
-
-The frontend has its own install and run commands in `frontend/`.
-
-## The 60 second demo
-
-The demo uses the fictional astronaut ASTRO-01 (30 days, newest reading is mission day 30):
-
-| Mission day | What happens | Alert |
-|-------------|--------------|-------|
-| 1 to 7 | Calibration window, baseline not yet established | DATA-02 (hidden from the default view) |
-| 20 | Heart rate 78 bpm against a baseline of 62 bpm (+16) | **HR-01**, WATCH |
-| 22 | One poor-quality SpO2 reading (93%) | **DATA-01**, NOTICE (data quality, no health inference) |
-| 26 | Sleep 5.4, 5.6 and 5.2 hours on three nights | **SLEEP-01**, NOTICE |
-
-The astronaut asks "Why was this flagged?", the assistant answers from the local library with citations, and the
-internet is switched off to show that everything still works.
+| Path | Purpose |
+|---|---|
+| [`frontend/`](frontend/) | Next.js 15 App Router frontend, TypeScript, React, Three.js and PWA assets |
+| [`backend/`](backend/) | FastAPI service, SQLite persistence, baseline analysis, alert rules and API tests |
+| [`rag/`](rag/) | Curated source metadata, ingestion, retrieval and Ollama integration |
+| [`data/sample/`](data/sample/) | Reproducible simulated readings, manifests, quality data and expected alerts |
+| [`contract/examples/`](contract/examples/) | JSON response examples used as the API contract |
+| [`docs/`](docs/) | Architecture, API contract, limitations and Docker guidance |
+| [`scripts/`](scripts/) | Local run, test, smoke-test and demo-reset helpers |
+| [`research/`](research/) | Research ownership and domain context |
+| [`tests/`](tests/) | Cross-component ownership and test organization |
 
 ## Alert rules
 
-All thresholds are prototype workflow rules, not medical thresholds, and live in
-`backend/app/engine/rules_config.py`.
+Rules are defined in [`backend/app/engine/rules_config.py`](backend/app/engine/rules_config.py). They are prototype workflow rules and should not be interpreted as clinical cut-offs.
 
-| ID | Rule | Severity |
-|----|------|----------|
-| HR-01 | Resting heart rate above personal baseline (15 bpm or more) | WATCH |
-| HR-02 | Persistent heart rate deviation (HR-01 on 2 consecutive days) | ATTENTION |
-| SPO2-01 | SpO2 below personal baseline (3 points or more, 2 consecutive valid readings) | WATCH |
-| SLEEP-01 | Sleep under 6 hours for 3 nights | NOTICE |
-| SLEEP-02 | Sleep 1.5 hours or more below baseline for 3 consecutive nights | WATCH |
-| TEMP-01 | Skin temperature 0.5 C or more above skin baseline on 2 consecutive comparable readings | WATCH |
-| DATA-01 | Insufficient or unreliable data (missing, poor quality, a gap over 36 h, or stale: no new reading for over 36 h when `STALE_CHECK=true`) | NOTICE (data quality) |
-| DATA-02 | Baseline not established (fewer than 7 usable days) | NOTICE (setup) |
+| ID | Meaning | Severity |
+|---|---|---|
+| `HR-01` | Resting heart rate is at least 15 bpm above personal baseline | `watch` |
+| `HR-02` | Heart-rate deviation persists for two consecutive days | `attention` |
+| `SPO2-01` | SpO2 is at least 3 points below baseline across two valid readings | `watch` |
+| `SLEEP-01` | Sleep is below six hours for three nights | `notice` |
+| `SLEEP-02` | Sleep is at least 1.5 hours below baseline for three nights | `watch` |
+| `TEMP-01` | Wearable skin temperature is at least 0.5 °C above baseline twice | `watch` |
+| `DATA-01` | Reading quality or coverage is insufficient, including stale data when enabled | `notice` |
+| `DATA-02` | A personal baseline has not been established | `notice` |
 
-Skin temperature is not core temperature, and the two are never mixed.
+Skin temperature is explicitly treated as a wearable skin measurement; it is never presented as core temperature.
 
 ## API
 
-| Method | Endpoint | Returns |
-|--------|----------|---------|
-| GET | `/api/status` | backend, offline flag, model state, documents indexed, last data update |
-| GET | `/api/profile` | astronaut and mission day |
-| GET | `/api/readings?days=14` | readings, oldest first |
-| GET | `/api/alerts?days=14` | alerts from the last N days, most severe first |
-| POST | `/api/assistant/ask` | answer, mode, citations and disclaimer |
-| POST / GET | `/api/core-temperature` | manual core-temperature entries, stored apart from skin readings, never used by rules |
+The FastAPI service exposes the following contract:
 
-Full field descriptions: [docs/api-contract.md](docs/api-contract.md). Example responses: `contract/examples/`.
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/status` | Backend, offline mode, LLM state, indexed documents and latest data time |
+| `GET` | `/api/profile` | Fictional astronaut profile and mission information |
+| `GET` | `/api/readings?days=14` | Recent readings, oldest first; `days` is 1–90 |
+| `GET` | `/api/alerts?days=14` | Recent alerts, ordered by severity and recency |
+| `POST` | `/api/assistant/ask` | Cited answer, mode, sources and safety disclaimer |
+| `POST` / `GET` | `/api/core-temperature` | Manual core-temperature entries, stored apart from skin readings and never used by rules |
 
-## Data
+Every response containing health data is labelled `SIMULATED`. Errors use a consistent shape:
 
-Two fictional profiles, 30 days each, generated reproducibly with a fixed seed. Sources, parameters and limits are
-in [data/sample/DATA_SHEET.md](data/sample/DATA_SHEET.md). NASA OSDR was used for research context only and none of
-its values appear in the generated files.
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "..."
+  }
+}
+```
+
+See the complete field definitions in [`docs/api-contract.md`](docs/api-contract.md) and example payloads in [`contract/examples/`](contract/examples/).
+
+## Quick start
+
+### Option A: run the FastAPI backend on Windows
+
+From the repository root:
+
+```powershell
+scripts\run_local.bat
+```
+
+The script creates `backend\.venv`, installs the backend dependencies and starts the API at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+Open the interactive API documentation at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+
+### Option B: run the backend manually
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+The database is created and seeded automatically on first startup.
+
+### Run the Next.js frontend
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). For a production build:
+
+```powershell
+npm run build
+npm start
+```
+
+### Option C: Docker Compose
+
+Run the backend only:
+
+```bash
+docker compose up --build
+```
+
+Run the backend and frontend:
+
+```bash
+docker compose --profile full up --build
+```
+
+Docker Compose exposes the backend on port `8000` and the frontend on port `3000`. Ollama is intentionally not containerized; when enabled, the backend reaches a host Ollama server through `host.docker.internal`. See [`docs/running-with-docker.md`](docs/running-with-docker.md).
+
+## Configuration
+
+The backend works with built-in defaults. To customize it:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+| Variable | Default | Description |
+|---|---|---|
+| `ASTRO_ID` | `ASTRO-01` | Fictional astronaut profile (`ASTRO-01` or `ASTRO-02`) |
+| `ASTRO_DB_PATH` | `data/runtime/astro.db` | SQLite database location |
+| `ASTRO_SAMPLE_CSV` | `data/sample/readings.csv` | Seed readings file |
+| `CORS_ORIGINS` | Local ports 3000/3001 | Comma-separated frontend origins |
+| `OLLAMA_URL` | `http://127.0.0.1:11434` | Local Ollama server |
+| `OLLAMA_MODEL` | environment-dependent | Model used for generated answers |
+| `OFFLINE_MODE` | `true` | Offline status flag exposed by the API |
+| `RAG_INDEX_DIR` | `rag/index` | Retrieval metadata directory |
+| `ASK_TIMEOUT_SECONDS` | `20` | Model timeout before retrieval-only fallback |
+
+## Data and retrieval
+
+The demo contains two fictional astronaut profiles with 30 days of reproducible readings. The data generator uses a fixed seed, and the quality sidecar makes unreliable readings explicit. NASA OSDR informed research context only; no real astronaut data is included.
+
+The retrieval library contains nine curated sources covering spaceflight physiology, Earth-independent medical operations, sleep, immunity, radiation and musculoskeletal health. The assistant:
+
+- retrieves only from the local library;
+- includes source titles, links and excerpts;
+- distinguishes LLM answers from `retrieval_only` answers;
+- avoids diagnosing conditions from wearable data;
+- refuses unsupported questions instead of fabricating evidence.
+
+Refresh the local index and run the grounding benchmark from the repository root:
+
+```bash
+python -m rag.ingest
+python -m rag.test_10_questions
+python -m rag.test_10_questions --llm
+```
+
+## Testing and verification
+
+Run the backend test suite:
+
+```bash
+./scripts/run_tests.sh
+```
+
+On Windows, activate the backend environment and run:
+
+```powershell
+cd backend
+.\.venv\Scripts\Activate.ps1
+python -m pytest
+```
+
+With the API running, check every endpoint:
+
+```bash
+python scripts/smoke_test.py
+```
+
+Reset and reseed the demo database when changing rules or sample data:
+
+```powershell
+scripts\reset_demo.bat
+```
+
+The test suite covers rules, baselines, data quality, seed behavior, endpoint validation, assistant fallbacks, API contract shape, status checks and the end-to-end demo scenario.
 
 ## Documentation
 
 - [Architecture](docs/architecture.md)
 - [API contract](docs/api-contract.md)
-- [Limitations](docs/limitations.md)
-- [Running with Docker](docs/running-with-docker.md)
+- [Limitations and ethics](docs/limitations.md)
+- [Docker guide](docs/running-with-docker.md)
+- [Backend guide](backend/README.md)
+- [RAG and scientific library](rag/README.md)
 - [Contributing](CONTRIBUTING.md)
 
-## Limitations and ethics
+## Limitations and responsible use
 
-This is decision support, not a medical device. The data is simulated, the library is small, and the numeric rules
-are unvalidated prototype rules. We do not claim clinical validation, diagnostic performance, real astronaut data or
-proven prediction of any condition. Read [docs/limitations.md](docs/limitations.md) before drawing any conclusion.
+- All readings and profiles are simulated.
+- Alert thresholds are not clinically validated.
+- The source library is intentionally small.
+- The assistant is not a doctor and does not provide diagnosis or emergency guidance.
+- A healthy or clean result does not rule out a medical problem.
+- There is no authentication or multi-user access control in this prototype.
+- The frontend and backend can run as separate applications; production deployments should configure their integration and CORS policy explicitly.
 
-## AI tools and credits
-
-- Parts of the backend code, tests and documentation were drafted with Claude (Anthropic) and reviewed, run and
-  tested by the team.
-- The assistant runs a local model through Ollama and local embeddings. Model names: see `rag/`.
-- Scientific sources are credited in the assistant's citations and in `research/`.
-- NASA OSDR was consulted for context only. No real astronaut data was used.
+Read [`docs/limitations.md`](docs/limitations.md) before using the project for research or demonstrations.
 
 ## Team
 
-Abdullah (team lead, frontend), Elthiero (backend, integration), Cesar (local model and RAG), Ammara (medical
-research, rules, UX), Sofia (data), Shubhi (testing and QA).
+| Contributor | Focus |
+|---|---|
+| Abdullah | Team lead, frontend and documentation |
+| Elthiero | Backend, APIs and integration |
+| Cesar | Local AI and retrieval pipeline |
+| Ammara | Medical research, indicators and alert rules |
+| Sofia | Data exploration and simulated datasets |
+| Shubhi | Testing and quality assurance |
 
-*Built for the NASA International Space Apps Challenge 2026.*
+## License and attribution
+
+This repository does not currently include a license file. If you plan to redistribute or build on the project, add an explicit license and confirm the usage rights for any included research metadata and third-party assets.
+
+Built for the **NASA International Space Apps Challenge 2026**.
