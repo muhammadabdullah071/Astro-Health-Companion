@@ -25,11 +25,14 @@ export default function Assistant() {
   const [lastMode, setLastMode] = useState<string>('llm')
   const [suggestions, setSuggestions] = useState<string[]>(() => buildAlerts().map((a) => a.q))
   const log = useRef<HTMLDivElement>(null), closeBtn = useRef<HTMLButtonElement>(null)
+  const msgsRef = useRef(msgs)
+  msgsRef.current = msgs
+  const handledPendingQ = useRef<string | null>(null)
 
   const ask = useCallback(async (text: string) => {
     if (!text.trim()) return
     const tid = uid++, reading = { hr: D[29].hr, sleep: D[29].sleep }
-    const historyPayload = msgs
+    const historyPayload = msgsRef.current
       .filter((m) => !m.typing && m.text && m.id > 0)
       .slice(-6)
       .map((m) => ({ role: m.role === 'u' ? 'user' : 'assistant', content: m.text }))
@@ -72,7 +75,14 @@ export default function Assistant() {
     )
   }, [off])
 
-  useEffect(() => { if (pendingQ) { ask(pendingQ); setPendingQ(null) } }, [pendingQ, ask, setPendingQ])
+  useEffect(() => {
+    // Guard against StrictMode / re-renders running this effect twice for the same pendingQ
+    if (!pendingQ) { handledPendingQ.current = null; return }
+    if (handledPendingQ.current === pendingQ) return
+    handledPendingQ.current = pendingQ
+    setPendingQ(null)
+    ask(pendingQ)
+  }, [pendingQ, ask, setPendingQ])
   useEffect(() => { log.current?.scrollTo({ top: 1e9 }) }, [msgs])
   useEffect(() => {
     if (src === null) return
