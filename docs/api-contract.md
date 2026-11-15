@@ -70,9 +70,29 @@ Always 200 once the alert exists, even when the model is slow or down (mode beco
 ```
 Status codes: 404 unknown alert or route, 422 invalid request, 500 unexpected error.
 
-## Not in contract v1 (needs agreement first)
-- Manual core-temperature entry (form and endpoint). Stored separately, never used in the skin baseline,
-  never creates an alert or a fever label on its own.
+## Additions after v1 (additive: no existing field changed)
+
+### Stale-data notice (DATA-01), request time
+When `STALE_CHECK=true` and the newest reading is older than DATA-01 `gap_hours` (36 h), `/api/alerts` adds one
+extra DATA-01 alert with id `s1`: severity `notice`, category `data_quality`, `value` null, message "No new readings
+for about N ... No health event is inferred." It is listed after every watch/attention alert and before the other
+notices. It is not stored, so the ids `a1`, `a2`, ... do not change, and `POST /api/assistant/ask` accepts
+`alert_id: "s1"` while the notice is active (404 otherwise). The check is OFF by default because the demo dataset is a
+fixed SIMULATED window. `ASTRO_NOW` (UTC ISO) pins the clock to rehearse it.
+
+### POST /api/core-temperature
+`contract/examples/core_temperature_request.json`, `contract/examples/core_temperature.json`
+Manual CORE temperature entry. Request: `core_temp_c` (30 to 45, a typo guard and not a clinical threshold), `method`
+(`oral`, `tympanic`, `temporal`, `axillary`, `rectal`, `other`), optional `timestamp` (UTC ISO, not in the future,
+default now) and optional `note` (up to 200 characters). Returns 201 with `entry` and `disclaimer`.
+Stored in its own `core_temperatures` table. It is never used in the skin baseline, never creates an alert and never
+produces a fever label. Invalid input gives 422 with the standard error shape.
+
+### GET /api/core-temperature?limit=50
+`contract/examples/core_temperature_list.json`
+The latest `limit` entries (1 to 200), oldest first: `data_label`, `entries[]`, `disclaimer`.
+
+The frontend does not call these yet. The API can be used from `/docs`.
 
 ## Conventions
 - All timestamps are UTC ISO 8601 with a trailing Z.

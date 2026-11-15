@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS core_temperatures;   -- recreated from core_temperature.sql (a reseed clears manual entries)
 DROP TABLE IF EXISTS alerts;
 DROP TABLE IF EXISTS readings;
 DROP TABLE IF EXISTS profile;

@@ -9,6 +9,7 @@ from app.engine import quality
 from app.engine import rules_config as rc
 from app.engine.analysis import METRICS, analyze
 from app.engine.baseline import comparable, gap_hours
+from app.utils import parse_ts
 
 rc.validate_config()
 
@@ -174,6 +175,34 @@ def data_02(series, analysis, i, cfg):
     first = missing[0]
     return _alert("DATA-02", cfg, series, i, first, analysis[i][first]["value"], None, msg,
                   data_quality="insufficient")
+
+
+# Id of the request-time stale-data notice. It is never stored: it depends on the clock, not on the readings.
+STALE_ALERT_ID = "s1"
+
+
+def stale_data_alert(series, now, config=None):
+    """DATA-01 for STALE data: the newest reading is older than DATA-01 gap_hours (same 36 h threshold as a gap).
+
+    Kept out of evaluate()/evaluate_all() on purpose: those are pure functions of the readings and run once at
+    seed time, while staleness depends on the current time. Returns an alert dict or None.
+    """
+    if not series:
+        return None
+    cfg = (config or rc.RULES_CONFIG).get("DATA-01")
+    if not cfg or not cfg.get("enabled", True):
+        return None
+    last = len(series) - 1
+    age_hours = (now - parse_ts(series[last]["timestamp"])).total_seconds() / 3600
+    if age_hours <= cfg["gap_hours"]:
+        return None
+    age = f"{age_hours / 24:.0f} days" if age_hours >= 48 else f"{age_hours:.0f} hours"
+    msg = (f"No new readings for about {age} (newest reading {series[last]['timestamp']}). "
+           "The data may be stale. No health event is inferred.")
+    alert = _alert("DATA-01", cfg, series, last, "data", None, None, msg, data_quality="insufficient")
+    alert["id"] = STALE_ALERT_ID
+    alert["position"] = 0
+    return alert
 
 
 RULE_FUNCS = [

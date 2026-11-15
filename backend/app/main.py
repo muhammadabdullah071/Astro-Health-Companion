@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import config
 from app.db import database, seed
 from app.errors import register_error_handlers
-from app.routes import alerts, assistant, profile, readings, status
+from app.routes import alerts, assistant, core_temperature, profile, readings, status
 from app.services import rag_adapter
 
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +25,12 @@ logger = logging.getLogger("astro")
 async def lifespan(_: FastAPI):
     if not database.db_exists():
         logger.info("No database found, seeding: %s", seed.seed())
+    else:
+        conn = database.connect()
+        try:
+            database.ensure_core_table(conn)  # older databases get the manual core-temperature table
+        finally:
+            conn.close()
     rag_adapter.get_ask()  # import rag.ask once so rag/index/meta.json exists before the first /api/status
     yield
 
@@ -38,7 +44,8 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     register_error_handlers(app)
-    for router in (status.router, profile.router, readings.router, alerts.router, assistant.router):
+    for router in (status.router, profile.router, readings.router, alerts.router, core_temperature.router,
+                   assistant.router):
         app.include_router(router, prefix="/api")
     return app
 
