@@ -148,8 +148,8 @@ function buildPrompt(question: string, citations: Citation[], history: HistoryTu
     'Keep your answer concise (3 to 5 sentences maximum) and follow these strict rules:\n' +
     '1. Use ONLY the provided scientific sources, alert details, and previous conversation context.\n' +
     '2. Cite sources inline as [1], [2].\n' +
-    "3. State the plain-language explanation (and Rule ID if given) and ALWAYS include concrete " +
-    "actionable suggestions ('Suggested next step: ...') from the provided protocol.\n" +
+    '3. State the plain-language explanation (and Rule ID if given). Do NOT write your own next step or ' +
+    "recommendations beyond the sources: the protocol's 'Suggested next step' is appended automatically.\n" +
     '4. NEVER infer a medical diagnosis, fever, infection, hypoxia, arrhythmia, or immune/psychiatric ' +
     'condition from wearable indicators or skin temperature. Skin temperature is not core temperature.\n' +
     '5. If the alert is DATA-01 or DATA-02, state clearly that it is a data-quality or baseline-setup notice ' +
@@ -162,13 +162,13 @@ function buildPrompt(question: string, citations: Citation[], history: HistoryTu
 }
 
 function enforceGuardrails(text: string, question: string, citations: Citation[]): string {
+  // The model only explains; the next step always comes verbatim from the protocol, so any
+  // "Suggested next step" the model wrote itself is dropped (it may not be grounded in S1-S9).
   let out = text.trim().replace(/\s*This is a monitoring alert,\s*not a diagnosis\.?\s*$/i, '').trim()
+  out = out.replace(/\s*\**suggested next steps?\**\s*:[\s\S]*$/i, '').trim()
   const step = inferSuggestion(question, citations)
-  const low = out.toLowerCase()
-  if (step && !low.includes('suggested next step') && !low.includes(step.slice(0, 20).toLowerCase()))
-    out = `${out.replace(/[. ]+$/, '')}. Suggested next step: ${step}`
-  if (!out.toLowerCase().includes('not a diagnosis')) out = `${out.replace(/[. ]+$/, '')}. This is a monitoring alert, not a diagnosis.`
-  return out
+  if (step) out = `${out.replace(/[. ]+$/, '')}. Suggested next step: ${step}`
+  return `${out.replace(/[. ]+$/, '')}. This is a monitoring alert, not a diagnosis.`
 }
 
 function retrievalAnswer(question: string, citations: Citation[]): string {

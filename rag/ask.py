@@ -1137,8 +1137,8 @@ def _build_llm_prompt(
         "Keep your answer concise (3 to 5 sentences maximum) and follow these strict rules:\n"
         "1. Use ONLY the provided scientific sources, alert details, and previous conversation context.\n"
         "2. Cite sources inline as [1], [2].\n"
-        "3. State the plain-language explanation (and Rule ID if given) and ALWAYS include concrete "
-        "actionable suggestions ('Suggested next step: ...') from the provided protocol.\n"
+        "3. State the plain-language explanation (and Rule ID if given). Do NOT write your own next step or "
+        "recommendations beyond the sources: the protocol's 'Suggested next step' is appended automatically.\n"
         "4. NEVER infer a medical diagnosis, fever, infection, hypoxia, arrhythmia, or immune/psychiatric "
         "condition from wearable indicators or skin temperature. Skin temperature is not core temperature.\n"
         "5. If the alert is DATA-01 or DATA-02, state clearly that it is a data-quality or baseline-setup notice "
@@ -1396,6 +1396,10 @@ def _enforce_clinical_guardrails(
         flags=re.IGNORECASE,
     ).strip()
 
+    # The model only explains; the next step always comes verbatim from the protocol, so any
+    # "Suggested next step" the model wrote itself is dropped (it may not be grounded in S1-S9).
+    cleaned = re.sub(r"\s*\**suggested next steps?\**\s*:.*$", "", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
+
     suggested_step = _infer_suggestion(question, alert, citations)
 
     if alert is not None:
@@ -1406,7 +1410,7 @@ def _enforce_clinical_guardrails(
         if boundary and "infer no health event" in boundary.lower() and "infer no health event" not in cleaned.lower():
             cleaned = f"{cleaned.rstrip('. ')}. {boundary}"
 
-    if suggested_step and "suggested next step" not in cleaned.lower() and suggested_step[:20].lower() not in cleaned.lower():
+    if suggested_step:
         cleaned = f"{cleaned.rstrip('. ')}. Suggested next step: {suggested_step}"
 
     if "not a diagnosis" not in cleaned.lower():
