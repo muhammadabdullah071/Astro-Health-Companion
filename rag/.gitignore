@@ -4,3 +4,7 @@ __pycache__/
 .venv/
 venv/
 .pytest_cache/
+
+# Track the ingested RAG index files so GitHub clones can use them immediately
+!index/corpus.json
+!index/meta.json

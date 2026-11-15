@@ -1,0 +1,10 @@
+Source ID: S3
+Title: The value of a spaceflight clinical decision support system for Earth-independent medical operations
+Authors: Russell BK, Burian BK, Hilmers DC, et al.
+Journal: npj Microgravity. 2023;9:46
+DOI: https://doi.org/10.1038/s41526-023-00284-1
+PMID: 37344482 | PMCID: PMC10284846
+License: cc-by-4.0
+========================================================================
+
+As NASA prepares for crewed lunar missions over the next several years, plans are also underway to journey farther into deep space. Deep space exploration will require a paradigm shift in astronaut medical support toward progressively earth-independent medical operations (EIMO). The Exploration Medical Capability (ExMC) element of NASA's Human Research Program (HRP) is investigating the feasibility and value of advanced capabilities to promote and enhance EIMO. Currently, astronauts rely on real-time communication with ground-based medical providers. However, as the distance from Earth increases, so do communication delays and disruptions. Moreover, resupply and evacuation will become increasingly complex, if not impossible, on deep space missions. In contrast to today's missions in low earth orbit (LEO), where most medical expertise and decision-making are ground-based, an exploration crew will need to autonomously detect, diagnose, treat, and prevent medical events. Due to the sheer amount of pre-mission training required to execute a human spaceflight mission, there is often little time to devote exclusively to medical training. One potential solution is to augment the long duration exploration crew's knowledge, skills, and abilities with a clinical decision support system (CDSS). An analysis of preliminary data indicates the potential benefits of a CDSS to mission outcomes when augmenting cognitive and procedural performance of an autonomous crew performing medical operations, and we provide an illustrative scenario of how such a CDSS might function.

@@ -41,6 +41,18 @@ def get_ask():
     return getattr(mod, "ask", rag_stub.ask) if mod else rag_stub.ask
 
 
+def ensure_index() -> None:
+    """Asks rag.ask to create corpus.json/meta.json in the current RAG_INDEX_DIR if they are missing."""
+    mod = _load_rag()
+    ensure = getattr(mod, "ensure_index_meta", None) if mod else None
+    if ensure is None:
+        return
+    try:
+        ensure()
+    except Exception as exc:
+        logger.warning("Could not initialise the RAG index metadata: %s", exc)
+
+
 def get_retrieval_only():
     mod = _load_rag()
     return getattr(mod, "retrieval_only", rag_stub.retrieval_only) if mod else rag_stub.retrieval_only

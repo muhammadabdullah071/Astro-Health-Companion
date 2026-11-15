@@ -31,7 +31,7 @@ async def lifespan(_: FastAPI):
             database.ensure_core_table(conn)  # older databases get the manual core-temperature table
         finally:
             conn.close()
-    rag_adapter.get_ask()  # import rag.ask once so rag/index/meta.json exists before the first /api/status
+    rag_adapter.ensure_index()  # make RAG_INDEX_DIR/meta.json exist before the first /api/status
     yield
 
 

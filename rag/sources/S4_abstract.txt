@@ -1,0 +1,10 @@
+Source ID: S4
+Title: Advancements in health monitoring technologies for astronauts in deep space missions: a review
+Authors: Gupta R, Ghosh PS
+Journal: Life Sci Space Res. 2025;47:190-196
+DOI: https://doi.org/10.1016/j.lssr.2025.06.011
+PMID: 41136019 | PMCID: N/A
+License: subscription-abstract-only
+========================================================================
+
+Health monitoring for astronauts is critical to ensure the safety and well-being of crew members during long-duration space missions. This paper presents an overview of the technologies developed to monitor various physiological parameters in space, focusing on the challenges posed by the space environment, including microgravity, radiation, and isolation. The paper reviews the evolution of wearable health monitoring systems and analyzes key advancements in sensor technology, AI-driven diagnostics, and data transmission. It evaluates past and present systems, highlighting trends such as improved sensor accuracy, miniaturization for enhanced wearability, and the shift from Earth-dependent monitoring to autonomous, AI-supported health assessments. Despite these advancements, challenges remain, including sensor complexity, data processing limitations, and system longevity. Based on this evaluation, the paper proposes a framework for a next-generation health monitoring system to optimize astronaut health monitoring in deep space. This system integrates minimal yet strategic physiological sensors, machine learning-driven predictive diagnostics, efficient data compression, and adaptive sensing. This review aims to provide insights into the strengths and gaps of existing technologies while suggesting potential advancements for future space missions.

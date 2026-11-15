@@ -1,0 +1,22 @@
+{
+  "documents_indexed": 9,
+  "sources_enriched_from_disk": 9,
+  "chunks_indexed": 114,
+  "source_ids": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6",
+    "S7",
+    "S8",
+    "S9"
+  ],
+  "llm_config": {
+    "backend": "gguf",
+    "tier": "auto",
+    "preferred_model": "",
+    "models_dir": "models"
+  }
+}

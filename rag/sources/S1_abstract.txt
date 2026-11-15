@@ -1,0 +1,10 @@
+Source ID: S1
+Title: Human physiological limitations to long-term spaceflight and living in space
+Authors: Winkler LH
+Journal: Aerosp Med Hum Perform. 2023;94(6):444-456
+DOI: https://doi.org/10.3357/AMHP.6190.2023
+PMID: 37194175 | PMCID: N/A
+License: subscription-abstract-only
+========================================================================
+
+INTRODUCTION: Despite all our dreams and enthusiasm, the essential question of whether our species can ever live permanently in space remains unanswered. The 1975 NASA Ames Design Study on Space Settlements demonstrated how human physiology constrains and determines human habitat design in space. Our scientific understanding about the risks of and standards for microgravity (and rotation rate if centrifugally generated), ionizing radiation, and atmosphere pressure and composition, remains inadequate a half century later. In addition, there are newly recognized physiological challenges to living safely in space, including spaceflight-associated neuro-ocular syndrome (SANS), extravascular hemolytic anemia, and other factors that affect every human cell and organ system. A comprehensive review was conducted to establish what we have learned and what is still required to know about the pathophysiology of long-term space travel and living in space since my first report in 1978. The results determine not only how, but if we can realistically plan to inhabit the cosmos that surrounds us. Winkler LH. Human physiological limitations to long-term spaceflight and living in space . Aerosp Med Hum Perform. 2023; 94(6):444-456.

@@ -1,0 +1,10 @@
+Source ID: S2
+Title: Long-term space missions' effects on the human organism: what we do know and what requires further research
+Authors: Tomsia M, Cieśla J, Śmieszek J, et al.
+Journal: Front Physiol. 2024;15:1284644
+DOI: https://doi.org/10.3389/fphys.2024.1284644
+PMID: 38415007 | PMCID: PMC10896920
+License: cc-by-4.0
+========================================================================
+
+Space has always fascinated people. Many years have passed since the first spaceflight, and in addition to the enormous technological progress, the level of understanding of human physiology in space is also increasing. The presented paper aims to summarize the recent research findings on the influence of the space environment (microgravity, pressure differences, cosmic radiation, etc.) on the human body systems during short-term and long-term space missions. The review also presents the biggest challenges and problems that must be solved in order to extend safely the time of human stay in space. In the era of increasing engineering capabilities, plans to colonize other planets, and the growing interest in commercial space flights, the most topical issues of modern medicine seems to be understanding the effects of long-term stay in space, and finding solutions to minimize the harmful effects of the space environment on the human body.
