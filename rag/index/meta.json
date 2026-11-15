@@ -1,0 +1,31 @@
+{
+  "documents_indexed": 9,
+  "sources_enriched_from_disk": 9,
+  "chunks_indexed": 114,
+  "source_ids": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6",
+    "S7",
+    "S8",
+    "S9"
+  ],
+  "llm_config": {
+    "backend": "gguf",
+    "tier": "standard",
+    "preferred_model": "qwen2.5-3b-instruct-q4_k_m.gguf",
+    "models_dir": "D:\\models"
+  },
+  "hardware_detected": {
+    "os": "Windows 10",
+    "cpu_cores": 12,
+    "ram_total_gb": 31.37,
+    "ram_available_gb": 10.23,
+    "gpu_name": "NVIDIA GeForce RTX 3080",
+    "vram_gb": 10.0,
+    "recommended_tier": "standard"
+  }
+}

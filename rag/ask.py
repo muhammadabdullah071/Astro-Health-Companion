@@ -426,8 +426,17 @@ def _meta_path() -> Path:
 
 
 def _ensure_default_meta() -> None:
-    """Ensures rag/index/meta.json exists in the repo folder even on a fresh git clone."""
+    """Ensures rag/index/meta.json and corpus.json exist even on a fresh git clone by running rag.ingest."""
     meta_path = _meta_path()
+    corpus_path = meta_path.parent / "corpus.json"
+    if not meta_path.is_file() or not corpus_path.is_file():
+        try:
+            from rag.ingest import build_index
+
+            build_index(index_dir=meta_path.parent)
+            return
+        except Exception:
+            pass
     if not meta_path.is_file():
         try:
             meta_path.parent.mkdir(parents=True, exist_ok=True)
@@ -574,6 +583,9 @@ def get_models_dir(custom_dir: str | Path | None = None) -> Path:
     p = Path(raw).expanduser()
     if not p.is_absolute():
         p = REPO_ROOT / p
+    # If a saved absolute path from another machine (e.g. D:\models) is not reachable, fall back to ./models
+    if not custom_dir and not os.environ.get("RAG_MODELS_DIR") and not p.exists():
+        return MODELS_DIR
     return p.resolve()
 
 
@@ -898,21 +910,29 @@ def download_model(
 # ---------------------------------------------------------------------------
 
 def _load_corpus() -> list[dict[str, Any]]:
-    """Loads custom corpus from RAG_INDEX_DIR/corpus.json if present, auto-building from rag/sources if needed."""
+    """Loads custom corpus from RAG_INDEX_DIR/corpus.json, auto-building from rag/sources_s1_s9 via rag.ingest if needed."""
     index_dir = Path(os.environ.get("RAG_INDEX_DIR", REPO_ROOT / "rag" / "index"))
     corpus_file = index_dir / "corpus.json"
-    if not corpus_file.is_file() and (REPO_ROOT / "rag" / "sources").is_dir():
-        try:
-            from rag.ingest import build_index
-
-            build_index(sources_dir=REPO_ROOT / "rag" / "sources", index_dir=index_dir)
-        except Exception:
-            pass
+    needs_ingest = not corpus_file.is_file()
     if corpus_file.is_file():
         try:
             data = json.loads(corpus_file.read_text(encoding="utf-8"))
             if isinstance(data, list) and data:
-                return data
+                if any("chunks" in d for d in data):
+                    return data
+                needs_ingest = True
+        except Exception:
+            needs_ingest = True
+
+    if needs_ingest:
+        try:
+            from rag.ingest import build_index
+
+            build_index(index_dir=index_dir)
+            if corpus_file.is_file():
+                data = json.loads(corpus_file.read_text(encoding="utf-8"))
+                if isinstance(data, list) and data:
+                    return data
         except Exception:
             pass
     return DEFAULT_CORPUS
@@ -923,12 +943,43 @@ def _tokenize(text: str) -> set[str]:
     return {t for t in tokens if len(t) > 1 and t not in _STOPWORDS}
 
 
-def _to_citation(doc: dict[str, Any]) -> dict[str, str]:
+def _select_best_ingested_chunk(doc: dict[str, Any], q_tokens: set[str]) -> str:
+    """Selects the most relevant ingested text chunk or abstract snippet from a corpus document."""
+    chunks = doc.get("chunks")
+    if isinstance(chunks, list) and chunks:
+        best_score = -1
+        best_chunk = str(chunks[0])
+        for ch in chunks:
+            ch_str = str(ch).strip()
+            if not ch_str:
+                continue
+            overlap = len(q_tokens & _tokenize(ch_str))
+            if overlap > best_score:
+                best_score = overlap
+                best_chunk = ch_str
+        return best_chunk.strip()
+
+    abstract = str(doc.get("abstract") or "").strip()
+    if abstract:
+        if len(abstract) <= 450:
+            return abstract
+        cut = abstract[:450].rsplit(" ", 1)[0]
+        return f"{cut}..."
+    return ""
+
+
+def _to_citation(doc: dict[str, Any], q_tokens: set[str] | None = None) -> dict[str, str]:
+    base_excerpt = str(doc.get("excerpt", "")).strip()
+    snippet = _select_best_ingested_chunk(doc, q_tokens or set())
+    if snippet and snippet[:60].lower() not in base_excerpt.lower():
+        combined_excerpt = f"{base_excerpt} Ingested source excerpt: {snippet}"
+    else:
+        combined_excerpt = base_excerpt
     return {
         "title": str(doc.get("title", "")),
         "source": str(doc.get("source", "")),
         "url": str(doc.get("url", "")),
-        "excerpt": str(doc.get("excerpt", "")),
+        "excerpt": combined_excerpt,
     }
 
 
@@ -961,9 +1012,9 @@ def _retrieve(
         mapped_ids = RULE_SOURCE_MAP.get(rule_id, [])
         mapped_docs = [by_id[sid] for sid in mapped_ids if sid in by_id]
         if mapped_docs:
-            return [_to_citation(d) for d in mapped_docs[:top_k]]
+            return [_to_citation(d, q_tokens) for d in mapped_docs[:top_k]]
 
-    # 2. Otherwise score corpus documents by rule/metric alignment and lexical overlap
+    # 2. Otherwise score corpus documents by rule/metric alignment and lexical overlap across ingested chunks
     alert_metric = (alert or {}).get("metric")
     alert_rule = (alert or {}).get("rule_id")
     alert_tokens = _tokenize(f"{(alert or {}).get('rule', '')} {(alert or {}).get('message', '')}")
@@ -972,8 +1023,9 @@ def _retrieve(
     for doc in corpus:
         score = 0.0
         doc_keywords = {k.lower() for k in doc.get("keywords", [])}
+        chunks_text = " ".join(str(c) for c in (doc.get("chunks") or [])[:8])
         doc_text_tokens = (
-            _tokenize(f"{doc.get('title', '')} {doc.get('excerpt', '')} {doc.get('abstract', '')}")
+            _tokenize(f"{doc.get('title', '')} {doc.get('excerpt', '')} {doc.get('abstract', '')} {chunks_text}")
             | doc_keywords
         )
 
@@ -1003,7 +1055,7 @@ def _retrieve(
     if not selected and alert is not None and corpus:
         selected = corpus[:top_k]
 
-    return [_to_citation(d) for d in selected]
+    return [_to_citation(d, q_tokens) for d in selected]
 
 
 def _format_retrieval_answer(question: str, alert: dict | None, citations: list[dict[str, str]]) -> str:
@@ -1542,6 +1594,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Check PC hardware capabilities, installed models, and active RAG LLM settings.",
     )
     parser.add_argument(
+        "--ingest",
+        action="store_true",
+        help="Run rag.ingest to build rag/index/corpus.json and rag/index/meta.json from rag/sources_s1_s9/.",
+    )
+    parser.add_argument(
         "--configure",
         action="store_true",
         help="Run the interactive configuration and model download wizard.",
@@ -1589,6 +1646,13 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     args = parser.parse_args(argv)
+
+    if args.ingest:
+        from rag.ingest import build_index
+
+        res = build_index()
+        print(json.dumps(res, indent=2))
+        return 0
 
     if args.configure:
         _interactive_configure()
