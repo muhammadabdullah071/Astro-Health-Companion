@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 import sqlite3
+from pathlib import Path
 
 from app import config
+
+CORE_TEMPERATURE_SQL = Path(__file__).with_name("core_temperature.sql")
 
 
 def connect() -> sqlite3.Connection:
@@ -24,3 +27,8 @@ def get_db():
         yield conn
     finally:
         conn.close()
+
+
+def ensure_core_table(conn: sqlite3.Connection) -> None:
+    """Create the manual core-temperature table if it is missing (safe to call every start)."""
+    conn.executescript(CORE_TEMPERATURE_SQL.read_text(encoding="utf-8"))

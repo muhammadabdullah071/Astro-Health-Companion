@@ -4,7 +4,9 @@ Values are read when called (not at import time) so tests and Docker can change 
 """
 from __future__ import annotations
 
+import logging
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 
 # backend/app/config.py -> parents[2] is the repository root
@@ -77,3 +79,27 @@ def rag_index_dir() -> Path:
 
 def ask_timeout() -> float:
     return float(os.environ.get("ASK_TIMEOUT_SECONDS", "20"))
+
+
+def stale_check_enabled() -> bool:
+    """DATA-01 staleness (no new readings for a long time) is judged at request time against the clock.
+
+    Off by default because the demo dataset is a fixed SIMULATED window: with the check on, the demo would
+    start raising a stale-data notice 36 hours after its last reading. Switch it on (STALE_CHECK=true) for a
+    live data feed, or pin the clock with ASTRO_NOW to rehearse the notice.
+    """
+    return os.environ.get("STALE_CHECK", "false").lower() in ("1", "true", "yes")
+
+
+def reference_now() -> datetime:
+    """The clock used for staleness and for default manual-entry times. ASTRO_NOW (UTC ISO) pins it for demos and tests."""
+    raw = os.environ.get("ASTRO_NOW", "").strip()
+    if raw:
+        try:
+            parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=timezone.utc)
+            return parsed.astimezone(timezone.utc)
+        except ValueError:
+            logging.getLogger("astro.config").warning("Ignoring invalid ASTRO_NOW=%r", raw)
+    return datetime.now(timezone.utc)

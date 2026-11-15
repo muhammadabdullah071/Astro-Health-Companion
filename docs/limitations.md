@@ -29,8 +29,9 @@ condition.
 ## Measurements
 
 - Skin temperature is not core temperature. It depends on sensor placement, contact and conditions, and cannot
-  establish a fever or an infection. Manual core-temperature entry is not implemented; if added it must be stored
-  separately and never combined with skin readings.
+  establish a fever or an infection. Manual core-temperature entry exists only as an API (`POST /api/core-temperature`,
+  no form in the interface yet). Entries are stored in a separate table, are never combined with skin readings and never
+  create an alert. A reseed clears them.
 - Wearable proxies cannot diagnose immune dysfunction, radiation injury or bone loss.
 - Sleep alone does not diagnose a behavioural-health or psychiatric condition.
 
@@ -48,7 +49,9 @@ condition.
 - No login or access control. The server listens on the local machine only. Real health data would need
   authentication, role-based access and encryption at rest.
 - The API serves one astronaut at a time (set with `ASTRO_ID`). There is no profile switcher.
-- Alerts are computed when the database is seeded, not continuously from live sensors.
+- Alerts are computed when the database is seeded, not continuously from live sensors. The one exception is the
+  stale-data notice (DATA-01), judged on each request when `STALE_CHECK=true` (off by default so the fixed demo
+  dataset does not go stale).
 - There is no integration with real wearables or flight hardware.
 - Offline operation has been verified only on the demo setup, after models and papers were downloaded.
 - Computer-vision fatigue detection and SANS-style imaging models are future work and are not part of this

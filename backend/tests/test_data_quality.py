@@ -87,14 +87,13 @@ def test_badly_formatted_value_is_rejected_at_import_time(tmp_path):
         seed.load_rows(bad)
 
 
-# ---------------------------------------------------------------- known gap
-def test_stale_timestamps_do_not_raise_data_01_known_gap():
-    """KNOWN GAP (DATA-01, spec: "missing, stale, badly formatted, or poor-quality").
+# ------------------------------------------------------------ stale data (see test_stale_data.py)
+def test_evaluate_does_not_judge_staleness_it_is_a_request_time_check():
+    """DATA-01 spec: "missing, stale, badly formatted, or poor-quality".
 
-    The engine checks the gap *between* readings (DATA-01 gap_hours = 36) but never
-    how old the newest reading is, so a dataset that stopped a year ago produces no
-    notice. This test records the current behaviour so the gap is visible; if
-    staleness detection is added it will fail and the assertion must be updated.
+    evaluate() is a pure function of the readings and runs once at seed time, so it cannot know the current time.
+    Staleness (newest reading older than gap_hours) is judged per request by rules.stale_data_alert() and added to
+    /api/alerts when STALE_CHECK=true. Tests for that live in tests/test_stale_data.py.
     """
     year_old = [row["timestamp"].replace("2026", "2025") for row in make_series(9)]
     series = make_series(9, timestamp=year_old, heart_rate_bpm=[62] * 9)
