@@ -420,43 +420,53 @@ _FOLLOWUP_CUES = {
 }
 
 
+def index_dir() -> Path:
+    """RAG index folder, read from RAG_INDEX_DIR on every call (relative paths resolve against the repo root)."""
+    raw = os.environ.get("RAG_INDEX_DIR", "").strip()
+    if not raw:
+        return REPO_ROOT / "rag" / "index"
+    p = Path(raw).expanduser()
+    return p if p.is_absolute() else REPO_ROOT / p
+
+
 def _meta_path() -> Path:
-    index_dir = Path(os.environ.get("RAG_INDEX_DIR", REPO_ROOT / "rag" / "index"))
-    return index_dir / "meta.json"
+    return index_dir() / "meta.json"
 
 
-def _ensure_default_meta() -> None:
-    """Ensures rag/index/meta.json and corpus.json exist even on a fresh git clone by running rag.ingest."""
-    meta_path = _meta_path()
-    corpus_path = meta_path.parent / "corpus.json"
+def ensure_index_meta() -> dict[str, Any]:
+    """Makes sure RAG_INDEX_DIR holds corpus.json and meta.json, so a fresh clone (or a new
+    RAG_INDEX_DIR) reports the real number of indexed documents instead of 0.
+
+    Builds the index with rag.ingest when it is missing; if that fails, writes a minimal
+    meta.json counting the documents that retrieval will actually use. Returns the metadata.
+    """
+    idx = index_dir()
+    meta_path = idx / "meta.json"
+    corpus_path = idx / "corpus.json"
     if not meta_path.is_file() or not corpus_path.is_file():
         try:
             from rag.ingest import build_index
 
-            build_index(index_dir=meta_path.parent)
-            return
+            return build_index(index_dir=idx, detect_hw=False)
         except Exception:
             pass
-    if not meta_path.is_file():
+    try:
+        meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.is_file() else {}
+    except Exception:
+        meta = {}
+    if not isinstance(meta, dict):
+        meta = {}
+    if not isinstance(meta.get("documents_indexed"), int) or meta["documents_indexed"] <= 0:
+        corpus = _load_corpus()
+        meta["documents_indexed"] = len(corpus)
+        meta.setdefault("source_ids", [d.get("id") for d in corpus])
+        meta.setdefault("llm_config", dict(DEFAULT_LLM_CONFIG))
         try:
-            meta_path.parent.mkdir(parents=True, exist_ok=True)
-            meta_path.write_text(
-                json.dumps(
-                    {
-                        "documents_indexed": len(DEFAULT_CORPUS),
-                        "source_ids": [d["id"] for d in DEFAULT_CORPUS],
-                        "llm_config": dict(DEFAULT_LLM_CONFIG),
-                    },
-                    indent=2,
-                )
-                + "\n",
-                encoding="utf-8",
-            )
+            idx.mkdir(parents=True, exist_ok=True)
+            meta_path.write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
         except Exception:
             pass
-
-
-_ensure_default_meta()
+    return meta
 
 
 # ---------------------------------------------------------------------------
@@ -911,8 +921,8 @@ def download_model(
 
 def _load_corpus() -> list[dict[str, Any]]:
     """Loads custom corpus from RAG_INDEX_DIR/corpus.json, auto-building from rag/sources_s1_s9 via rag.ingest if needed."""
-    index_dir = Path(os.environ.get("RAG_INDEX_DIR", REPO_ROOT / "rag" / "index"))
-    corpus_file = index_dir / "corpus.json"
+    idx = index_dir()
+    corpus_file = idx / "corpus.json"
     needs_ingest = not corpus_file.is_file()
     if corpus_file.is_file():
         try:
@@ -928,7 +938,7 @@ def _load_corpus() -> list[dict[str, Any]]:
         try:
             from rag.ingest import build_index
 
-            build_index(index_dir=index_dir)
+            build_index(index_dir=idx, detect_hw=False)
             if corpus_file.is_file():
                 data = json.loads(corpus_file.read_text(encoding="utf-8"))
                 if isinstance(data, list) and data:
@@ -1749,6 +1759,11 @@ def main(argv: list[str] | None = None) -> int:
     _print_status_report()
     return 0
 
+
+
+# Run at the end of the module: rag.ingest imports names from rag.ask, so calling it earlier
+# fails with a circular import and silently skips building corpus.json.
+ensure_index_meta()
 
 if __name__ == "__main__":
     sys.exit(main())

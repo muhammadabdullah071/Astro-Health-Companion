@@ -16,11 +16,10 @@ from __future__ import annotations
 import argparse
 import copy
 import json
-import os
 import re
 from pathlib import Path
 
-from rag.ask import DEFAULT_CORPUS, DEFAULT_LLM_CONFIG, detect_hardware
+from rag.ask import DEFAULT_CORPUS, DEFAULT_LLM_CONFIG, detect_hardware, index_dir as default_index_dir
 
 
 def _strip_header(text: str) -> str:
@@ -87,9 +86,12 @@ def resolve_sources_dir(custom_dir: Path | None = None) -> Path:
     return repo_root / "rag" / "sources"
 
 
-def build_index(sources_dir: Path | None = None, index_dir: Path | None = None) -> dict:
-    repo_root = Path(__file__).resolve().parents[1]
-    index_dir = Path(index_dir or os.environ.get("RAG_INDEX_DIR", repo_root / "rag" / "index"))
+def build_index(
+    sources_dir: Path | None = None,
+    index_dir: Path | None = None,
+    detect_hw: bool = True,
+) -> dict:
+    index_dir = Path(index_dir) if index_dir else default_index_dir()
     sources_dir = resolve_sources_dir(sources_dir)
 
     index_dir.mkdir(parents=True, exist_ok=True)
@@ -157,14 +159,16 @@ def build_index(sources_dir: Path | None = None, index_dir: Path | None = None) 
         except Exception:
             pass
 
-    hw = detect_hardware()
     meta_payload = {
         "documents_indexed": len(corpus),
         "sources_enriched_from_disk": enriched_count,
         "chunks_indexed": total_chunks,
         "source_ids": [d["id"] for d in corpus],
         "llm_config": existing_llm_config,
-        "hardware_detected": {
+    }
+    if detect_hw:  # informational only; skipped when the index is auto-built at startup
+        hw = detect_hardware()
+        meta_payload["hardware_detected"] = {
             "os": hw["os"],
             "cpu_cores": hw["cpu_cores"],
             "ram_total_gb": hw["ram_total_gb"],
@@ -172,8 +176,7 @@ def build_index(sources_dir: Path | None = None, index_dir: Path | None = None) 
             "gpu_name": hw["gpu_name"],
             "vram_gb": hw["vram_gb"],
             "recommended_tier": hw["recommended_tier"],
-        },
-    }
+        }
     meta_json_path.write_text(
         json.dumps(meta_payload, indent=2) + "\n",
         encoding="utf-8",

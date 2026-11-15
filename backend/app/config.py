@@ -74,7 +74,12 @@ def offline_mode() -> bool:
 
 
 def rag_index_dir() -> Path:
-    return Path(os.environ.get("RAG_INDEX_DIR", REPO_ROOT / "rag" / "index"))
+    # Same resolution as rag.ask.index_dir(): relative paths are relative to the repo root.
+    raw = os.environ.get("RAG_INDEX_DIR", "").strip()
+    if not raw:
+        return REPO_ROOT / "rag" / "index"
+    p = Path(raw).expanduser()
+    return p if p.is_absolute() else REPO_ROOT / p
 
 
 def ask_timeout() -> float:
