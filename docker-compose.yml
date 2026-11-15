@@ -1,5 +1,5 @@
-# Backend only:           docker compose up --build
-# Backend and frontend:   docker compose --profile full up --build
+# Backend and frontend:   docker compose up --build
+# Backend only:           docker compose up --build backend
 #
 # Each service owns its Dockerfile and .dockerignore:
 #   backend/Dockerfile   backend/.dockerignore
@@ -28,14 +28,21 @@ services:
     restart: unless-stopped
 
   frontend:
-    profiles: ["full"]
     build:
       context: ./frontend
       args:
         NEXT_PUBLIC_API_URL: http://localhost:8000
         NEXT_PUBLIC_USE_MOCK: "false"
+    environment:
+      # Server-side (Next API routes / server components) talk to FastAPI
+      # over the Docker network using the service name, not localhost.
+      BACKEND_URL: http://backend:8000
+      # Keep the mock fallback flag here too so the running container can
+      # toggle it without a rebuild (the build arg alone bakes it in).
+      NEXT_PUBLIC_USE_MOCK: "false"
     ports:
       - "3000:3000"
     depends_on:
       backend:
         condition: service_healthy
+    restart: unless-stopped

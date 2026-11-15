@@ -1,0 +1,17 @@
+{
+  "data_label": "SIMULATED",
+  "entries": [
+    {
+      "id": 1,
+      "timestamp": "2026-11-14T09:30:00Z",
+      "core_temp_c": 37.1,
+      "unit": "°C",
+      "method": "oral",
+      "note": "Manual check after exercise",
+      "temp_type": "core",
+      "measurement_method": "manual",
+      "data_label": "SIMULATED"
+    }
+  ],
+  "disclaimer": "Manual core-temperature entries are stored separately and are not used for skin-temperature baselines or alerts. This is not a diagnosis."
+}

@@ -127,6 +127,7 @@ def seed(csv_path=None, traceability_path=None) -> dict:
     conn = database.connect()
     try:
         conn.executescript(SCHEMA.read_text(encoding="utf-8"))
+        database.ensure_core_table(conn)
         placeholders = ", ".join("?" * (2 + len(COLUMNS)))
         for pid, rows in dataset.items():
             conn.execute(

@@ -40,9 +40,19 @@ def recompute_alerts(conn, astronaut_id=None):
     return alerts
 
 
+def current_stale_alert(conn, astronaut_id=None):
+    """The request-time stale-data DATA-01 notice, or None (check off, or the data is fresh)."""
+    if not config.stale_check_enabled():
+        return None
+    astronaut_id = astronaut_id or config.default_astronaut_id()
+    return rules.stale_data_alert(load_series(conn, astronaut_id), config.reference_now())
+
+
 def fetch_alert(conn, alert_id, astronaut_id=None):
     """The full alert (including rule_id, next_step, source) for the assistant."""
     astronaut_id = astronaut_id or config.default_astronaut_id()
+    if alert_id == rules.STALE_ALERT_ID:
+        return current_stale_alert(conn, astronaut_id)
     row = conn.execute(
         "SELECT * FROM alerts WHERE id = ? AND astronaut_id = ?", (alert_id, astronaut_id)
     ).fetchone()

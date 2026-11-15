@@ -1,42 +1,56 @@
-import { KB } from '@/lib/data'
-import fs from 'node:fs'
-import path from 'node:path'
+import { NextResponse } from 'next/server'
 
-const BACKEND_URL = process.env.BACKEND_URL || 'http://127.0.0.1:8000'
+const BACKEND = process.env.BACKEND_URL ?? 'http://localhost:8000'
+const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b'
+const groqReady = () => Boolean(process.env.GROQ_API_KEY)
 
 export async function GET() {
-  const metaPath = path.resolve(process.cwd(), '..', 'rag', 'index', 'meta.json')
-  let meta: Record<string, unknown> | null = null
   try {
-    if (fs.existsSync(metaPath)) {
-      meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'))
+    const res = await fetch(`${BACKEND}/api/status`, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(4000),
+    })
+    if (!res.ok) throw new Error(`status ${res.status}`)
+    const b = await res.json()
+
+    return NextResponse.json(
+      {
+        backend: b.backend === 'ok' ? 'running' : 'degraded',
+        model: {
+          name: b.llm === 'unavailable' ? (groqReady() ? `groq:${GROQ_MODEL}` : 'offline') : b.llm,
+          ready: b.llm !== 'unavailable' || groqReady(),
+        },
+        documents: b.documents_indexed,
+        lastUpdate: b.last_data_update,
+        dataLabel: b.data_label,
+      },
+      { headers: { 'X-Source': 'backend' } },
+    )
+  } catch (e) {
+    // No FastAPI (e.g. on Vercel): the assistant can still answer through Groq + the bundled corpus.
+    if (groqReady()) {
+      const corpus = (await import('@/data/corpus.json')).default as unknown[]
+      return NextResponse.json(
+        {
+          backend: 'serverless',
+          model: { name: `groq:${GROQ_MODEL}`, ready: true },
+          documents: corpus.length,
+          lastUpdate: null,
+          dataLabel: 'SIMULATED',
+        },
+        { headers: { 'X-Source': 'groq' } },
+      )
     }
-  } catch {}
-
-  const llmCfg = (meta?.llm_config as Record<string, string> | undefined) || {}
-  const modelName = llmCfg.preferred_model || `${llmCfg.backend || 'gguf'} (${llmCfg.tier || 'auto'})`
-  const docsCount = typeof meta?.documents_indexed === 'number' ? meta.documents_indexed : KB.length
-  const modelReady = llmCfg.backend !== 'off' && llmCfg.tier !== 'off'
-
-  try {
-    const res = await fetch(`${BACKEND_URL}/api/status`, { signal: AbortSignal.timeout(1500) })
-    if (res.ok) {
-      const b = await res.json()
-      return Response.json({
-        backend: b.backend === 'ok' ? 'running' : b.backend,
-        model: { name: modelName, ready: b.llm === 'ready' || modelReady },
-        documents: b.documents_indexed || docsCount,
-        lastUpdate: b.last_data_update || '2026-11-14T08:00:00Z',
-        dataLabel: b.data_label || 'SIMULATED',
-      })
-    }
-  } catch {}
-
-  return Response.json({
-    backend: 'running',
-    model: { name: modelName, ready: modelReady },
-    documents: docsCount,
-    lastUpdate: '2026-11-14T08:00:00Z',
-    dataLabel: 'SIMULATED',
-  })
+    console.warn('[api/status] backend unreachable, serving offline state:', e)
+    return NextResponse.json(
+      {
+        backend: 'offline',
+        model: { name: 'offline', ready: false },
+        documents: 0,
+        lastUpdate: null,
+        dataLabel: 'SIMULATED',
+      },
+      { headers: { 'X-Source': 'mock' } },
+    )
+  }
 }

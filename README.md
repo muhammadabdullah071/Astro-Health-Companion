@@ -86,7 +86,7 @@ All thresholds are prototype workflow rules, not medical thresholds, and live in
 | SLEEP-01 | Sleep under 6 hours for 3 nights | NOTICE |
 | SLEEP-02 | Sleep 1.5 hours or more below baseline for 3 consecutive nights | WATCH |
 | TEMP-01 | Skin temperature 0.5 C or more above skin baseline on 2 consecutive comparable readings | WATCH |
-| DATA-01 | Insufficient or unreliable data | NOTICE (data quality) |
+| DATA-01 | Insufficient or unreliable data (missing, poor quality, a gap over 36 h, or stale: no new reading for over 36 h when `STALE_CHECK=true`) | NOTICE (data quality) |
 | DATA-02 | Baseline not established (fewer than 7 usable days) | NOTICE (setup) |
 
 Skin temperature is not core temperature, and the two are never mixed.
@@ -100,6 +100,7 @@ Skin temperature is not core temperature, and the two are never mixed.
 | GET | `/api/readings?days=14` | readings, oldest first |
 | GET | `/api/alerts?days=14` | alerts from the last N days, most severe first |
 | POST | `/api/assistant/ask` | answer, mode, citations and disclaimer |
+| POST / GET | `/api/core-temperature` | manual core-temperature entries, stored apart from skin readings, never used by rules |
 
 Full field descriptions: [docs/api-contract.md](docs/api-contract.md). Example responses: `contract/examples/`.
 
